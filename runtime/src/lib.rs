@@ -91,6 +91,9 @@ pub mod difficulty;
 /// The faucet to allow users to claim free tokens
 pub mod faucet;
 
+/// The total issuance and halving time
+pub mod issuance;
+
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
