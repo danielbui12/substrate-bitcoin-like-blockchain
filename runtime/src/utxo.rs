@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 
 use parity_scale_codec::{Decode, Encode};
 use sp_core::{
-	crypto::Public as _,
 	H256, H512,
 	sr25519::{Public, Signature},
     ByteArray,
@@ -14,7 +13,6 @@ use sp_std::{
 };
 use sp_runtime::{
 	traits::{BlakeTwo256, Hash, SaturatedConversion},
-	transaction_validity::{TransactionLongevity, ValidTransaction},
 };
 use scale_info::TypeInfo;
 use super::{block_author::BlockAuthor, issuance::Issuance};

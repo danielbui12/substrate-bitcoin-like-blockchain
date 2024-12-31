@@ -2,13 +2,13 @@ use std::str::FromStr;
 
 use academy_pow_runtime::{
     AccountId, RuntimeGenesisConfig, SS58Prefix, Signature, TOKEN_DECIMALS, TOKEN_SYMBOL,
-    WASM_BINARY,
+    WASM_BINARY, utxo,
 };
 use multi_pow::{ForkHeights, ForkingConfig, MaxiPosition};
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
-use sp_core::{sr25519, Pair, Public};
+use sp_core::{sr25519, Pair, Public, H256, ByteArray};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
@@ -110,6 +110,13 @@ pub fn development_config() -> Result<ChainSpec, String> {
         ],
         // Initial Difficulty
         4_000_000,
+        // Pre-funded accounts
+        vec![
+            get_account_id_from_seed::<sr25519::Public>("Alice"),
+            get_account_id_from_seed::<sr25519::Public>("Bob"),
+            get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
+            get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
+        ],
     ))
     .with_properties(system_properties())
     .build())
@@ -130,26 +137,53 @@ pub fn testnet_config() -> Result<ChainSpec, String> {
     .with_id("testnet")
     .with_chain_type(ChainType::Local)
     .with_genesis_config_patch(genesis(
-        // Pre-funded accounts
         vec![
             get_account_id_from_seed::<sr25519::Public>("Alice"),
+            get_account_id_from_seed::<sr25519::Public>("Bob"),
+            get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
+            get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
         ],
         4_000_000,
+        vec![
+            get_account_id_from_seed::<sr25519::Public>("Alice"),
+            get_account_id_from_seed::<sr25519::Public>("Bob"),
+            get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
+            get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
+        ],
     ))
     .with_properties(system_properties())
     .build())
 }
 
-fn genesis(endowed_accounts: Vec<AccountId>, _initial_difficulty: u32) -> serde_json::Value {
+fn genesis(
+    endowed_accounts: Vec<AccountId>,
+    _initial_difficulty: u32,
+    utxo_genesis_accounts: Vec<AccountId>,
+) -> serde_json::Value {
     serde_json::json!({
         "balances": {
             // Configure endowed accounts with initial balance of 1 << 50.
             "balances": endowed_accounts.iter().cloned().map(|k| (k, 1u64 << 50)).collect::<Vec<_>>(),
         },
-        //TODO Figure out how to convert a u32 into a proper json value here.
-        // "difficultyAdjustment": {
-        //     "initialDifficulty": serde_json::json!(initial_difficulty),
+        // TODO Figure out how to convert a u32 into a proper json value here.
+        // pub struct U256(pub [u64; 4]);
+        // "md5DifficultyAdjustment": {
+        //     "initialDifficulty": initial_difficulty.to_le_bytes(),
         // },
+        // "sha3DifficultyAdjustment": {
+        //     "initialDifficulty": initial_difficulty.to_le_bytes(),
+        // },
+        // "keccakDifficultyAdjustment": {
+        //     "initialDifficulty": initial_difficulty.to_le_bytes(),
+        // },
+        "utxo": {
+            "genesis_utxos": utxo_genesis_accounts
+                .iter().cloned()
+                .map(|k| utxo::TransactionOutput {
+                    value: (1u64 << 50).into(),
+                    pubkey: H256::from_slice(k.as_slice()),
+                }).collect::<Vec<_>>(),
+        } 
     })
 }
 
