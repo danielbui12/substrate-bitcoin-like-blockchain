@@ -343,7 +343,7 @@ impl pallet_transaction_payment::Config for Runtime {
 
 impl utxo::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	// type BlockAuthor = BlockAuthor;
+	type BlockAuthor = BlockAuthor;
 	type Issuance = issuance::BitcoinHalving;
 }
 
