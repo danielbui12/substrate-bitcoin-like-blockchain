@@ -13,7 +13,7 @@ pub use frame_support::{
     construct_runtime, parameter_types,
     traits::{
         Currency, EstimateNextNewSession, Imbalance, KeyOwnerProofSystem, LockIdentifier, Nothing,
-        OnUnbalanced, ValidatorSet,
+        OnUnbalanced, ValidatorSet, IsSubType
     },
     weights::{
         constants::{
@@ -21,7 +21,7 @@ pub use frame_support::{
         },
         IdentityFee, Weight,
     },
-    StorageValue,
+    StorageValue, Callable
 };
 use frame_support::{
     genesis_builder_helper::{build_config, create_default_config},
@@ -45,7 +45,7 @@ use sp_runtime::{
     traits::{
         AccountIdLookup, BlakeTwo256, Block as BlockT, Bounded, IdentifyAccount, One, Verify,
     },
-    transaction_validity::{TransactionSource, TransactionValidity},
+    transaction_validity::{TransactionValidityError, InvalidTransaction, TransactionSource, TransactionValidity},
     ApplyExtrinsicResult, MultiSignature,
 };
 pub use sp_runtime::{FixedPointNumber, Perbill, Permill};
@@ -449,6 +449,21 @@ impl_runtime_apis! {
             tx: <Block as BlockT>::Extrinsic,
             block_hash: <Block as BlockT>::Hash,
         ) -> TransactionValidity {
+            // Extrinsics representing UTXO transaction need some special handling
+			if let Some(&utxo::Call::spend{ ref transaction }) = IsSubType::<<Utxo as Callable<Runtime>>::RuntimeCall>::is_sub_type(&tx.function) 
+            {
+				match Utxo::validate_transaction(&transaction) {
+					// Transaction verification failed
+					Err(e) => {
+						sp_runtime::print(e);
+						return Err(TransactionValidityError::Invalid(InvalidTransaction::Custom(1)));
+					}
+					// Race condition, or Transaction is good to go
+					Ok(tv) => { return Ok(tv); }
+				}
+			}
+
+			// Fall back to default logic for non UTXO-spending extrinsics
             Executive::validate_transaction(source, tx, block_hash)
         }
     }
