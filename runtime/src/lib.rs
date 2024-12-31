@@ -94,6 +94,9 @@ pub mod faucet;
 /// The total issuance and halving time
 pub mod issuance;
 
+/// UTXOs serve as the digital equivalent of change you receive after making a cash purchase
+pub mod utxo;
+
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
@@ -337,6 +340,13 @@ impl pallet_transaction_payment::Config for Runtime {
     type FeeMultiplierUpdate = ConstFeeMultiplier<FeeMultiplier>;
 }
 
+
+impl utxo::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	// type BlockAuthor = BlockAuthor;
+	type Issuance = issuance::BitcoinHalving;
+}
+
 construct_runtime!(
     pub struct Runtime {
         System: frame_system,
@@ -348,6 +358,7 @@ construct_runtime!(
         KeccakDifficultyAdjustment: difficulty::<Instance3>,
         BlockAuthor: block_author,
         Faucet: faucet,
+		Utxo: utxo,
     }
 );
 
@@ -476,7 +487,8 @@ impl_runtime_apis! {
         }
     }
 
-impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance> for Runtime {
+    impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance> for Runtime 
+    {
         fn query_info(
             uxt: <Block as BlockT>::Extrinsic,
             len: u32,
@@ -497,7 +509,7 @@ impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Ba
         }
     }
 
-impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentCallApi<Block, Balance, RuntimeCall>
+    impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentCallApi<Block, Balance, RuntimeCall>
         for Runtime
     {
         fn query_call_info(
