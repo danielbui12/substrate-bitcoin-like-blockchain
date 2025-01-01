@@ -11,5 +11,8 @@ This template is generated from [Polkadot-Blockchain-Academy/Academy-PoW](https:
 ## UTXO
 
 
+## Tool
+
+- Convert `SS58 account` to `sr25519::Pubkey`: https://polkadot.subscan.io/tools/format_transform
 
 

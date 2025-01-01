@@ -2,13 +2,14 @@ use std::str::FromStr;
 
 use academy_pow_runtime::{
     AccountId, RuntimeGenesisConfig, SS58Prefix, Signature, TOKEN_DECIMALS, TOKEN_SYMBOL,
-    WASM_BINARY, utxo,
+    WASM_BINARY, 
+    // utxo,
 };
 use multi_pow::{ForkHeights, ForkingConfig, MaxiPosition};
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
-use sp_core::{sr25519, Pair, Public, H256, ByteArray};
+use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
@@ -176,14 +177,14 @@ fn genesis(
         // "keccakDifficultyAdjustment": {
         //     "initialDifficulty": initial_difficulty.to_le_bytes(),
         // },
-        "utxo": {
-            "genesis_utxos": utxo_genesis_accounts
-                .iter().cloned()
-                .map(|k| utxo::TransactionOutput {
-                    value: (1u64 << 50).into(),
-                    pubkey: H256::from_slice(k.as_slice()),
-                }).collect::<Vec<_>>(),
-        } 
+        // "utxo": {
+        //     "genesis_utxos": utxo_genesis_accounts
+        //         .iter().cloned()
+        //         .map(|k| utxo::TransactionOutput {
+        //             value: (1u64 << 50).into(),
+        //             pubkey: H256::from_slice(k.as_slice()),
+        //         }).collect::<Vec<_>>(),
+        // },
     })
 }
 

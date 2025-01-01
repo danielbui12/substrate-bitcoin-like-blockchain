@@ -10,7 +10,7 @@ async-trait = { optional = true, workspace = true }
 parity-scale-codec = { workspace = true }
 scale-info = { workspace = true }
 serde = { optional = true, workspace = true }
-
+log.workspace = true
 
 frame-executive = { workspace = true }
 frame-support = { workspace = true }

@@ -3,6 +3,9 @@
 use frame_support::traits::Currency;
 pub use pallet::*;
 
+use crate::utxo::UtxoFaucet;
+use sp_core::sr25519::Public;
+
 #[frame_support::pallet(dev_mode)]
 pub mod pallet {
     use frame_support::pallet_prelude::*;
@@ -15,6 +18,8 @@ pub mod pallet {
     pub trait Config: frame_system::Config {
         /// The currency type in which the faucet provides token
         type Currency: Currency<Self::AccountId>;
+
+        type UtxoFaucet: UtxoFaucet;
 
         /// The amount of tokens that should be created for each call into the faucet
         type DripAmount: Get<BalanceOf<Self>>;
@@ -34,6 +39,19 @@ pub mod pallet {
             let caller = ensure_signed(origin)?;
 
             let _ = T::Currency::deposit_creating(&caller, T::DripAmount::get());
+
+            Ok(())
+        }
+
+        #[pallet::weight(1_000_000)]
+        pub fn claim_utxo(
+            origin: OriginFor<T>,
+            to: Public,
+            value: u128,
+        ) -> DispatchResult {
+            let caller = ensure_signed(origin)?;
+
+            let _ = T::UtxoFaucet::deposit_creating(&to, value.into());
 
             Ok(())
         }

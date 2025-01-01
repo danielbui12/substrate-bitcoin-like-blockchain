@@ -15,6 +15,8 @@ use sp_runtime::{
 	traits::{BlakeTwo256, Hash, SaturatedConversion},
 };
 use scale_info::TypeInfo;
+use frame_system::pallet_prelude::OriginFor;
+use frame_support::pallet_prelude::DispatchResult;
 use super::{block_author::BlockAuthor, issuance::Issuance};
 
 pub type Value = u128;
@@ -138,6 +140,8 @@ pub mod pallet {
         TransactionSuccess(Transaction),
         /// Reward distributed to `BlockAuthor`
 		RewardDistributed(Value, H256),
+        /// Faucet to `To`
+		Faucet(Value, H256),
         /// No one get reward
         RewardWasted
     }
@@ -244,9 +248,24 @@ pub mod pallet {
             Self::deposit_event(Event::RewardDistributed(reward, hash));
         }
 
+        fn deposit_creating(to: &Public, value: Value) -> DispatchResult {
+            log::info!("Hello, World!");
+            let utxo = TransactionOutput {
+                value,
+                pubkey: H256::from_slice(&to[..]),
+            };
+
+            let hash = BlakeTwo256::hash_of(&(&utxo, 0));
+            UtxoStore::<T>::insert(hash, utxo);
+
+            Self::deposit_event(Event::<T>::Faucet(value, hash));
+
+            Ok(())
+        }
+
 
         // Strips a transaction of its Signature fields by replacing value with ZERO-initialized fixed hash.
-        pub fn get_simple_transaction(transaction: &Transaction) -> Vec<u8> {//&'a [u8] {
+        fn get_simple_transaction(transaction: &Transaction) -> Vec<u8> {//&'a [u8] {
             let mut trx = transaction.clone();
             for input in trx.inputs.iter_mut() {
                 input.sigscript = H512::zero();
@@ -259,7 +278,7 @@ pub mod pallet {
         /// Checks for race condition, if a certain trx is missing input_utxos in UtxoStore
         /// If None missing inputs: no race condition, gtg
         /// if Some(missing inputs): there are missing variables
-        pub fn get_missing_utxos(transaction: &Transaction) -> Vec<&H256> {
+        fn get_missing_utxos(transaction: &Transaction) -> Vec<&H256> {
             let mut missing_utxos = Vec::new();
             for input in transaction.inputs.iter() {
                 if UtxoStore::<T>::get(&input.outpoint).is_none() {
@@ -348,4 +367,15 @@ pub mod pallet {
         }
     }
 
+}
+
+
+pub trait UtxoFaucet {
+    fn deposit_creating(to: &Public, value: Value) -> DispatchResult;
+}
+
+impl<T: Config> UtxoFaucet for Pallet<T> {
+    fn deposit_creating(to: &Public, value: Value) -> DispatchResult {
+        Pallet::<T>::deposit_creating(to, value)
+    }
 }
