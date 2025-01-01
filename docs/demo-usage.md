@@ -85,3 +85,10 @@ Bob:
 
 ![2_check_balance](assets/2_check_balance.png)
 
+## 3. Another way to check the Account balance
+
+- Head over to [_Chain State_](https://polkadot.js.org/apps/?rpc=ws%3A%2F%2F127.0.0.1%3A9944#/chainstate), select `utxo`, `utxoOf`
+- Input sr25519::Pubkey of Alice or Bob, refer to [this](#Address)
+- Then you'll get the latest UTXO hash of them, now you can easily keep track the balance of accounts.
+
+![3_another_way_to_check_balance](assets/3_another_method_to_check_balance.png)

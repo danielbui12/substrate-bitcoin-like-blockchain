@@ -5,6 +5,7 @@ This template is generated from [Polkadot-Blockchain-Academy/Academy-PoW](https:
 
 ## UTXO
 
+- Discover what is [UTXO](docs/utxo.md)
 
 ## How to run the node
 
@@ -20,3 +21,9 @@ This template is generated from [Polkadot-Blockchain-Academy/Academy-PoW](https:
 ## Code breakdown
 
 - Head over to [this](docs/code-breakdown.md) to understand step-by-step.
+
+
+## FAQ
+
+- Read the [FAQ](docs/faq.md)
+

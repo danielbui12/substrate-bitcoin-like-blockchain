@@ -15,9 +15,6 @@ use sp_runtime::{
 	traits::{BlakeTwo256, Hash, SaturatedConversion},
 };
 use scale_info::TypeInfo;
-use frame_system::pallet_prelude::OriginFor;
-use frame_support::pallet_prelude::DispatchResult;
-use frame_support::pallet_prelude::DispatchError;
 use super::{block_author::BlockAuthor, issuance::Issuance};
 
 pub type Value = u128;
@@ -97,13 +94,24 @@ pub mod pallet {
     /// Initial set of UTXO is populated from the list stored in genesis.
     /// We use the identity hasher here because the cryptographic hashing is
     /// done explicitly.
-    /// Mapping from `hash_of(transaction, index)` to `TransactionOutput`
+    /// Mapping from `BlakeTwo256::hash_of(transaction, index)` to `TransactionOutput`
     #[pallet::storage]
     #[pallet::getter(fn utxo_store)]
     pub type UtxoStore<T: Config> = StorageMap<
             Hasher = Identity,
             Key=H256,
             Value=TransactionOutput,
+            QueryKind=OptionQuery
+        >;
+     
+    /// Keep track of latest UTXO hash of account
+    /// Mapping from `sr25519::Pubkey` to `BlakeTwo256::hash_of(transaction, index)`
+    #[pallet::storage]
+    #[pallet::getter(fn utxo_of)]
+    pub type UtxoOf<T: Config> = StorageMap<
+            Hasher = Identity,
+            Key=Public,
+            Value=H256,
             QueryKind=OptionQuery
         >;
 
@@ -118,7 +126,8 @@ pub mod pallet {
     impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
         fn build(&self) {
             for utxo in self.genesis_utxos.iter() {
-                UtxoStore::<T>::insert(&BlakeTwo256::hash_of(&utxo), utxo); 
+                let hash = BlakeTwo256::hash_of(&utxo);
+                Pallet::<T>::store_utxo(&utxo, hash);
             }
         }
     }
@@ -238,7 +247,7 @@ pub mod pallet {
                 log::info!("hash: {:?}", hash);
                 // validated before, this is safe
                 index = index.checked_add(1).ok_or(Error::<T>::MaximumTransactionDepth).unwrap();
-                UtxoStore::<T>::insert(hash, output);
+                Self::store_utxo(output, hash);
                 Self::deposit_event(Event::TransactionOutputProcessed(hash));
             }
 
@@ -259,7 +268,7 @@ pub mod pallet {
             let hash = BlakeTwo256::hash_of(&(&utxo,
                         frame_system::Pallet::<T>::block_number().saturated_into::<u64>()));
 
-            UtxoStore::<T>::insert(hash, utxo);
+            Self::store_utxo(&utxo, hash);
             Self::deposit_event(Event::RewardDistributed(reward, hash));
         }
 
@@ -271,11 +280,19 @@ pub mod pallet {
             };
 
             let hash = BlakeTwo256::hash_of(&(&utxo, 0));
-            UtxoStore::<T>::insert(hash, utxo);
+            Self::store_utxo(&utxo, hash);
 
             Self::deposit_event(Event::<T>::Faucet(value, hash));
 
             Ok(())
+        }
+
+        fn store_utxo(utxo: &TransactionOutput, hash: H256) {
+            UtxoStore::<T>::insert(hash, utxo);
+            // Convert H256 back to sr25519::Public
+            let pubkey = Public::from_h256(utxo.pubkey);
+            log::info!("pubkey: {:?}", pubkey);
+            UtxoOf::<T>::insert(pubkey, hash);
         }
 
 
@@ -289,19 +306,19 @@ pub mod pallet {
             trx.encode()
         }
 
-        /// Helper fn for Transaction Pool
-        /// Checks for race condition, if a certain trx is missing input_utxos in UtxoStore
-        /// If None missing inputs: no race condition, gtg
-        /// if Some(missing inputs): there are missing variables
-        fn get_missing_utxos(transaction: &Transaction) -> Vec<&H256> {
-            let mut missing_utxos = Vec::new();
-            for input in transaction.inputs.iter() {
-                if UtxoStore::<T>::get(&input.outpoint).is_none() {
-                    missing_utxos.push(&input.outpoint);
-                }
-            }
-            missing_utxos
-        }
+        // /// Helper fn for Transaction Pool
+        // /// Checks for race condition, if a certain trx is missing input_utxos in UtxoStore
+        // /// If None missing inputs: no race condition, gtg
+        // /// if Some(missing inputs): there are missing variables
+        // fn get_missing_utxos(transaction: &Transaction) -> Vec<&H256> {
+        //     let mut missing_utxos = Vec::new();
+        //     for input in transaction.inputs.iter() {
+        //         if UtxoStore::<T>::get(&input.outpoint).is_none() {
+        //             missing_utxos.push(&input.outpoint);
+        //         }
+        //     }
+        //     missing_utxos
+        // }
 
 
         /// Check transaction for validity, errors, & race conditions
