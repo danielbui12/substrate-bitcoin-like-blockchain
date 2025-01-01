@@ -9,10 +9,3 @@ This template is generated from [Polkadot-Blockchain-Academy/Academy-PoW](https:
 - Refer to [How to run the node](docs/how-to-run-the-node.md) to choose development environment and boost up your first node.
 
 ## UTXO
-
-
-## Tool
-
-- Convert `SS58 account` to `sr25519::Pubkey`: https://polkadot.subscan.io/tools/format_transform
-
-

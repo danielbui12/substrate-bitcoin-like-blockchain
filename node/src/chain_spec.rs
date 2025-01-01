@@ -9,7 +9,8 @@ use multi_pow::{ForkHeights, ForkingConfig, MaxiPosition};
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
-use sp_core::{sr25519, Pair, Public};
+use sp_core::{sr25519, Pair, Public, H256};
+// use sp_core::ByteArray;
 use sp_runtime::traits::{IdentifyAccount, Verify};
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.

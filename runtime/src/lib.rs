@@ -299,8 +299,6 @@ impl faucet::Config for Runtime {
     // type Event = Event;
     type Currency = Balances;
 
-    type UtxoFaucet = Utxo;
-
     // Each drip of the faucet gives 5 tokens (with 12 decimals)
     type DripAmount = ConstU128<{ 5 * TOKEN }>;
 }

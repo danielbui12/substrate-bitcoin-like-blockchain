@@ -138,6 +138,8 @@ pub mod pallet {
     pub enum Event<T: Config> {
         /// Dispatch transaction successful
         TransactionSuccess(Transaction),
+        /// UTXO out processed
+        TransactionOutputProcessed(H256),
         /// Reward distributed to `BlockAuthor`
 		RewardDistributed(Value, H256),
         /// Faucet to `To`
@@ -201,6 +203,14 @@ pub mod pallet {
 
             Ok(())
         }
+
+        pub fn faucet(
+            _origin: OriginFor<T>,
+            to: Public,
+            value: Value
+        ) -> DispatchResult {
+            Self::deposit_creating(&to, value)
+        }
     }
 
 
@@ -225,6 +235,7 @@ pub mod pallet {
                 // validated before, this is safe
                 index = index.checked_add(1).ok_or(Error::<T>::MaximumTransactionDepth).unwrap();
                 UtxoStore::<T>::insert(hash, output);
+                Self::deposit_event(Event::TransactionOutputProcessed(hash));
             }
 
             Ok(())
@@ -329,11 +340,14 @@ pub mod pallet {
             // Check that inputs are valid
             for input in transaction.inputs.iter() {
                 if let Some(input_utxo) = UtxoStore::<T>::get(&input.outpoint) {
-                    ensure!(sp_io::crypto::sr25519_verify(
-                        &Signature::from_raw(*input.sigscript.as_fixed_bytes()),
-                        &simple_transaction,
-                        &Public::from_h256(input_utxo.pubkey)
-                    ), Error::<T>::InvalidSignature);
+                    log::info!("encoded tx: {:?}", simple_transaction);
+                    let is_valid_sig = sp_io::crypto::sr25519_verify(
+                            &Signature::from_raw(*input.sigscript.as_fixed_bytes()),
+                            &simple_transaction,
+                            &Public::from_h256(input_utxo.pubkey)
+                    );
+                    log::info!("is_valid_sig: {:?}", is_valid_sig);
+                    ensure!(is_valid_sig), Error::<T>::InvalidSignature);
                     total_input = total_input.checked_add(input_utxo.value).ok_or(Error::<T>::InputOverflow)?;
                 } else {
                     missing_utxos.push(input.outpoint.clone().as_fixed_bytes().to_vec());
