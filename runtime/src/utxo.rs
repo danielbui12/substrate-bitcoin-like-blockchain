@@ -233,7 +233,7 @@ pub mod pallet {
             let new_total = TotalReward::<T>::get()
                 .checked_add(reward)
                 .ok_or(Error::<T>::RewardOverflow)?;
-                TotalReward::<T>::put(new_total);
+            TotalReward::<T>::put(new_total);
 
             // Removing spent UTXOs
             for input in &transaction.inputs {

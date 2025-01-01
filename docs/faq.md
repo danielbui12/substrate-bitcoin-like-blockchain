@@ -6,7 +6,7 @@ Sigscript is signed data from _Alice_. Look at `runtime/src/utxo.rs:346` and `sc
 
 ### How does it maintain balance of wallet?
 
-One Account has only one UTXO. Every time a wallet makes transfer UTXO, the `input(s) UTXO` will be removed, replaced for `outputs UTXO`. Please read the [scenario](demo-usage.md).
+Every time a wallet makes transfer UTXO, the `input(s) UTXO` will be removed, replaced for `outputs UTXO`. Please read the [scenario](demo-usage.md).
 
 In this case:
 - Alice UTXO initial balance was removed

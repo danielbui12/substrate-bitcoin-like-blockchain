@@ -8,6 +8,19 @@
 
 ## Scenario
 
+1. Initially, Alice has UTXO $100.
+2. She transfers to BOB an UTXO $50, but she doesn't have an UTXO $50. So she has to use her $100.
+3. `TransactionInput` contains `outpoint` is UTXO $100, `sigscript` is signed data of "simple transaction" (refer to `runtime/src/utxo.rs:354`).
+5. There will be 2 `TransactionOutput`s:
+    - `TransactionOutput` contains `value` is UTXO $50, `pubkey` is Bob address
+    - `TransactionOutput` contains `value` is UTXO $50, `pubkey` is Alice address
+
+```mermaid
+flowchart LR
+    AliceBefore[Alice <br/> UTXO $100] --> T{Transaction}
+    T -->|Change| AliceAfter[Alice <br/> UTXO $50]
+    T -->|Receive| Bob[Bob <br/> UTXO $50]
+```
 
 ## Steps
 
@@ -75,12 +88,12 @@ Then submit unsigned transaction
 Alice: 
 - Input: `0x7108d560f7d0079c8fe711f0ff5d316438cd376911e176b8bab62327e5ff8f0a`
 - Press **+** button
-- Verify Alice has UTXO 50
+- Verify Alice has an UTXO $50
 
 Bob:
 - Input: `0xe292131bbf25a3131045f26c2b750e6e7d26fc56a473aaf19e3a60d15ca3a82f`
 - Press **+** button
-- Verify Bob has UTXO 50
+- Verify Bob has an UTXO $50
 
 
 ![2_check_balance](assets/2_check_balance.png)
@@ -92,3 +105,9 @@ Bob:
 - Then you'll get the latest UTXO hash of them, now you can easily keep track the balance of accounts.
 
 ![3_another_way_to_check_balance](assets/3_another_method_to_check_balance.png)
+
+
+### Custom your own
+
+> [!NOTE]
+> If you would love to play in your own way, refer to `scripts/generate-signature/generate-signature.js` to generate your own custom signed data!
