@@ -12,7 +12,7 @@ First you will need a [Substrate developer environment](https://docs.substrate.i
 You can use a native binary if you built it in the previous section. Otherwise you can use Docker.
 
 ```sh
-./target/release/academy-pow --dev
+./target/release/academy-pow --dev --tmp --mining-algo md5
 ```
 
 ### Docker Single Node

@@ -232,8 +232,10 @@ pub mod pallet {
             }
 
             let mut index: u64 = 0;
+            log::info!("transaction outputs len: {:?}", transaction.outputs.len());
             for output in &transaction.outputs {
                 let hash = BlakeTwo256::hash_of(&(&transaction.encode(), index));
+                log::info!("hash: {:?}", hash);
                 // validated before, this is safe
                 index = index.checked_add(1).ok_or(Error::<T>::MaximumTransactionDepth).unwrap();
                 UtxoStore::<T>::insert(hash, output);
