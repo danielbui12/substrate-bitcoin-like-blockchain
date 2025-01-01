@@ -1,21 +1,69 @@
 const { u8aToHex } = require('@polkadot/util');
 const { Keyring } = require('@polkadot/keyring');
-const { cryptoWaitReady } = require('@polkadot/util-crypto')
+const { ApiPromise, WsProvider } = require('@polkadot/api');
+
+const wsProvider = new WsProvider('ws://127.0.0.1:9944'); // Replace with your endpoint
 
 async function main() {
-    await cryptoWaitReady();
+    // await cryptoWaitReady();
     const keyring = new Keyring({ type: 'sr25519', ss58Format: 2 });
-    
+    // Register types
+    const api = await ApiPromise.create({
+        types: {
+            TransactionInput: {
+                outpoint: 'H256',      // Fixed 32 bytes
+                sigscript: 'H512'     // Fixed 64 bytes
+            },
+            TransactionOutput: {
+                value: 'u128',        // 16 bytes
+                pubkey: 'H256'        // Fixed 32 bytes
+            },
+            Transaction: {
+                inputs: 'Vec<TransactionInput>',  // Vec type
+                outputs: 'Vec<TransactionOutput>' // Vec type
+            }
+        },
+        provider: wsProvider, // Add the provider here
+    });
+
     // create Alice based on the development seed
     const alice = keyring.addFromUri('//Alice');
 
+    const inputs = [{
+        // the latest UTXO hash of the account want to spent
+        outpoint: "0xdc25c09de55abb8ea4c3d53bd1ca5c26e0501db8cede096d8328cb482fda935a",
+        // default simple sigscript
+        sigscript: "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    }]
+    const outputs = [
+        {
+            // Value to spend
+            value: "50",
+            // Bob pubkey
+            pubkey: "0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48",
+        },
+        {
+            // Value to spend
+            value: "50",
+            // Alice pubkey
+            pubkey: "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d",
+        },
+    ]
+    // Encode full transaction
+    const encodedTx = api.createType('Transaction', {
+        inputs: inputs,
+        outputs: outputs
+    }).toU8a();
+    
     // the encoded transaction in u8 array
-    const message = new Uint8Array([4, 220, 37, 192, 157, 229, 90, 187, 142, 164, 195, 213, 59, 209, 202, 92, 38, 224, 80, 29, 184, 206, 222, 9, 109, 131, 40, 203, 72, 47, 218, 147, 90, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 142, 175, 4, 21, 22, 135, 115, 99, 38, 201, 254, 161, 126, 37, 252, 82, 135, 97, 54, 147, 201, 18, 144, 156, 178, 38, 170, 71, 148, 242, 106, 72, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 212, 53, 147, 199, 21, 253, 211, 28, 97, 20, 26, 189, 4, 169, 159, 214, 130, 44, 133, 88, 133, 76, 205, 227, 154, 86, 132, 231, 165, 109, 162, 125]);
-    const signature = alice.sign(message);
-    const isValid = alice.verify(message, signature, alice.publicKey);
+    const signature = alice.sign(encodedTx);
+    const isValid = alice.verify(encodedTx, signature, alice.publicKey);
     
     // output the result
     console.log(`${u8aToHex(signature)} is ${isValid ? 'valid' : 'invalid'}`);
 }
 
-main();
+main().then(() => process.exit(0)).catch(error => {
+    console.error(error);
+    process.exit(1);
+});

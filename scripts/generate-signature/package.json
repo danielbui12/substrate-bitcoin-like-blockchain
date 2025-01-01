@@ -21,7 +21,9 @@
   },
   "homepage": "https://github.com/danielbui12/substrate-bitcoin#readme",
   "dependencies": {
+    "@polkadot/api": "^15.1.1",
     "@polkadot/keyring": "^13.2.3",
+    "@polkadot/types": "^15.1.1",
     "@polkadot/util": "^13.2.3",
     "@polkadot/wasm-crypto": "^7.4.1"
   }
