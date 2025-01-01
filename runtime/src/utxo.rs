@@ -17,6 +17,7 @@ use sp_runtime::{
 use scale_info::TypeInfo;
 use frame_system::pallet_prelude::OriginFor;
 use frame_support::pallet_prelude::DispatchResult;
+use frame_support::pallet_prelude::DispatchError;
 use super::{block_author::BlockAuthor, issuance::Issuance};
 
 pub type Value = u128;
@@ -342,13 +343,13 @@ pub mod pallet {
             for input in transaction.inputs.iter() {
                 if let Some(input_utxo) = UtxoStore::<T>::get(&input.outpoint) {
                     log::info!("encoded tx: {:?}", simple_transaction);
-                    // let is_valid_sig = sp_io::crypto::sr25519_verify(
-                    //         &Signature::from_raw(*input.sigscript.as_fixed_bytes()),
-                    //         &simple_transaction,
-                    //         &Public::from_h256(input_utxo.pubkey)
-                    // );
-                    // log::info!("is_valid_sig: {:?}", is_valid_sig);
-                    // ensure!(is_valid_sig, Error::<T>::InvalidSignature);
+                    let is_valid_sig = sp_io::crypto::sr25519_verify(
+                            &Signature::from_raw(*input.sigscript.as_fixed_bytes()),
+                            &simple_transaction,
+                            &Public::from_h256(input_utxo.pubkey)
+                    );
+                    log::info!("is_valid_sig: {:?}", is_valid_sig);
+                    ensure!(is_valid_sig, Error::<T>::InvalidSignature);
                     total_input = total_input.checked_add(input_utxo.value).ok_or(Error::<T>::InputOverflow)?;
                 } else {
                     missing_utxos.push(input.outpoint.clone().as_fixed_bytes().to_vec());
@@ -380,17 +381,5 @@ pub mod pallet {
                 propagate: true,
             })
         }
-    }
-
-}
-
-
-pub trait UtxoFaucet {
-    fn deposit_creating(to: &Public, value: Value) -> DispatchResult;
-}
-
-impl<T: Config> UtxoFaucet for Pallet<T> {
-    fn deposit_creating(to: &Public, value: Value) -> DispatchResult {
-        Pallet::<T>::deposit_creating(to, value)
     }
 }

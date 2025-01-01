@@ -88,9 +88,6 @@ pub mod block_author;
 // /// The Difficulty Adjustment Algorithm in `./difficulty.rs`
 pub mod difficulty;
 
-/// The faucet to allow users to claim free tokens
-pub mod faucet;
-
 /// The total issuance and halving time
 pub mod issuance;
 
@@ -295,14 +292,6 @@ impl difficulty::Config<Instance3> for Runtime {
     }
 }
 
-impl faucet::Config for Runtime {
-    // type Event = Event;
-    type Currency = Balances;
-
-    // Each drip of the faucet gives 5 tokens (with 12 decimals)
-    type DripAmount = ConstU128<{ 5 * TOKEN }>;
-}
-
 impl block_author::Config for Runtime {
     // Each block mined issues 50 new tokens to the miner
     fn on_author_set(author_account: Self::AccountId) {
@@ -357,7 +346,6 @@ construct_runtime!(
         Sha3DifficultyAdjustment: difficulty::<Instance2>,
         KeccakDifficultyAdjustment: difficulty::<Instance3>,
         BlockAuthor: block_author,
-        Faucet: faucet,
 		Utxo: utxo,
     }
 );
