@@ -1,3 +1,35 @@
+## Adding custom type
+
+Head over [Polkadot JS](https://polkadot.js.org/apps/?rpc=ws%3A%2F%2F127.0.0.1%3A9944#/settings/developer), and then add this to additional types as a json file
+
+```json
+{
+  "Address": "AccountId",
+  "LookupSource": "AccountId",
+  "Value": "u128",
+  "TransactionInput": {
+    "outpoint": "Hash",
+    "sigscript": "H512"
+  },
+  "TransactionOutput": {
+    "value": "Value",
+    "pubkey": "Hash"
+  },
+  "Transaction": {
+    "inputs": "Vec<TransactionInput>",
+    "outputs": "Vec<TransactionOutput>"
+  },
+  "Difficulty": "U256",
+  "DifficultyAndTimestamp": {
+    "difficulty": "Difficulty",
+    "timestamp": "Moment"
+  },
+  "Public": "H256"
+}
+```
+
+
+
 ## Pre-install packages
 
 ## Address

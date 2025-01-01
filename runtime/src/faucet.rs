@@ -3,7 +3,6 @@
 use frame_support::traits::Currency;
 pub use pallet::*;
 
-use crate::utxo::UtxoFaucet;
 use sp_core::sr25519::Public;
 
 #[frame_support::pallet(dev_mode)]
