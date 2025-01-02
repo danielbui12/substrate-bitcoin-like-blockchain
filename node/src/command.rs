@@ -48,7 +48,7 @@ impl SubstrateCli for Cli {
     }
 
     fn support_url() -> String {
-        "support.anonymous.an".into()
+        "https://github.com/danielbui12/substrate-bitcoin-like-blockchain/issues/new".into()
     }
 
     fn copyright_start_year() -> i32 {

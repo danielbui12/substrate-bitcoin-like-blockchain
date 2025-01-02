@@ -1,5 +1,5 @@
 [package]
-authors = [ "Anonymous" ]
+authors = [ "@danielbui12" ]
 build = "build.rs"
 edition = "2021"
 name = "academy-pow"

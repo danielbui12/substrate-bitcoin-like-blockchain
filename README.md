@@ -1,8 +1,3 @@
-
-## Academy PoW
-
-This template is generated from [Polkadot-Blockchain-Academy/Academy-PoW](https://github.com/Polkadot-Blockchain-Academy/Academy-PoW). 
-
 ## UTXO
 
 - Discover what is [UTXO](docs/utxo.md)
@@ -26,4 +21,3 @@ This template is generated from [Polkadot-Blockchain-Academy/Academy-PoW](https:
 ## FAQ
 
 - Read the [FAQ](docs/faq.md)
-

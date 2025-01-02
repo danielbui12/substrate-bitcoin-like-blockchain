@@ -1,5 +1,8 @@
 # Demo usage
 
+> [!IMPORTANT]
+> Please follow up strictly these value to have best experience 😉.
+
 ## Address
 
 - Powerful tool to convert `SS58 account` to `sr25519::Pubkey`: https://polkadot.subscan.io/tools/format_transform

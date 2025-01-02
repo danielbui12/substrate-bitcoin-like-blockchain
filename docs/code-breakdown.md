@@ -409,7 +409,7 @@ pub fn validate_transaction(transaction: &Transaction) -> Result<ValidTransactio
 
 > Why does it return `TransactionValidity` instead of `Result`?
 
-Look at `runtime/lib.rs:441`, we'll pre-validate transaction, and if it pass, it will not use `Executive::validate_transaction`, that's why we can submit unsigned transaction, no need to pay any fee.
+Look at `runtime/lib.rs:441`, we'll pre-validate transaction, and if it pass, it will not use `Executive::validate_transaction`, that's why we can submit unsigned transaction, no need to pay any fee of `pallet_balances`.
 ```rust
 impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime {
     fn validate_transaction(

@@ -35,8 +35,8 @@ Let's dive deep into each model, the following schema illustrates the relationsh
 
 classDiagram
     class Transaction {
-        +Vec<TransactionInput> inputs
-        +Vec<TransactionOutput> outputs
+        +TransactionInput[] inputs
+        +TransactionOutput[] outputs
     }
 
     class TransactionInput {
@@ -50,21 +50,21 @@ classDiagram
     }
 
 
-    class NearestTransactionOutput {
+    class Recent_TransactionOutput {
         +Value value
         +H256 pubkey
     }
 
-    Transaction --> "0x124..724" TransactionInput : has
-    Transaction --> "0x632...123" TransactionOutput : generates
+    Transaction --> TransactionInput : has
+    Transaction --> TransactionOutput : generates
 
-    TransactionInput --> NearestTransactionOutput : references nearest
+    TransactionInput --> Recent_TransactionOutput : references nearest
 ```
 
 **Explanation:**
 - `Transaction`: Contains vectors of `TransactionInput` and `TransactionOutput`, representing the inputs and outputs of the transaction.
 - `TransactionInput`: 
-    - `outpoint`: a unique identifier for a UTXO, point to the nearest `NearestTransactionOutput`. i.e: Alice already has an UTXO $10 (0x1), now she wants to use it to _"spend"_. So the `outpoint` points to the _UTXO $10_.
+    - `outpoint`: a unique identifier for a UTXO, point to the recent `TransactionOutput`s of _Sender_. i.e: Alice already has an UTXO $10 (0x1), now she wants to use it to _"spend"_. So the `outpoint` points to the _UTXO $10_.
     - `sigscript`: a script to validate the transaction.
 - `TransactionOutput`: 
     - `value`: the amount being transferred.

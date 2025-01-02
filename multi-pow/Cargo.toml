@@ -1,5 +1,5 @@
 [package]
-authors = [ "Anonymous" ]
+authors = [ "@danielbui12" ]
 description = "a concrete Substrate PoW algorithm that supports multiple hashing algorithms"
 edition = "2021"
 name = "multi-pow"
