@@ -254,7 +254,9 @@ where
 
         // Here we handle the forking logic according the the node operator's request.
         let valid_algorithm = match self.fork_config {
-            ForkingConfig::Manual => manual_fork_validation(parent_number, seal.work.algo),
+            ForkingConfig::Manual => {
+                manual_fork_validation(parent_number, seal.work.algo)
+            },
             ForkingConfig::Automatic(fork_heights, maxi_position) => {
                 auto_fork_validation(parent_number, seal.work.algo, fork_heights, maxi_position)
             }
@@ -343,6 +345,10 @@ fn manual_fork_validation(_parent_number: u32, algo: SupportedHashes) -> bool {
     }
 }
 
+/// @dev: Currently all algorithms not work at all.
+/// So fork will not work as well.
+/// This function contains a custom logic about fork.
+/// Hence we cannot use it for now.
 fn auto_fork_validation(
     parent_number: u32,
     algo: SupportedHashes,

@@ -26,7 +26,7 @@ When using the local networking, you can use the `--discover-local` flag to disc
 
 # Start the second node
 # Choose a non-default rpc port because the default port is taken by the first node.
-./target/release/academy-pow --dev --mining-algo md5 --rpc-port 9944 --discover-local
+./target/release/academy-pow --dev --mining-algo sha3 --rpc-port 9944 --discover-local
 ```
 
 ## More Help

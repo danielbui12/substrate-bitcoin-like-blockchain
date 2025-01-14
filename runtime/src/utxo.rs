@@ -1,3 +1,6 @@
+// We make sure this pallet uses `no_std` for compiling to Wasm.
+#![cfg_attr(not(feature = "std"), no_std)]
+
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
 
@@ -131,7 +134,8 @@ pub mod pallet {
             }
         }
     }
-
+    
+    #[cfg(feature = "std")]
     impl<T: Config> Default for GenesisConfig<T> {
         fn default() -> Self {
             Self {
