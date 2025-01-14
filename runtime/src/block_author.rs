@@ -110,19 +110,19 @@ pub mod pallet {
 
 /// A trait to find the author (miner) of the block.
 pub trait BlockAuthor {
-	fn block_author() -> Option<sr25519::Public>;
+    fn block_author() -> Option<sr25519::Public>;
 }
 
 impl BlockAuthor for () {
-	fn block_author() -> Option<sr25519::Public> {
-		None
-	}
+    fn block_author() -> Option<sr25519::Public> {
+        None
+    }
 }
 
 impl<T: Config> BlockAuthor for Pallet<T> {
     fn block_author() -> Option<sr25519::Public> {
-		Author::<T>::get()
-	}
+        Author::<T>::get()
+    }
 }
 
 pub const INHERENT_IDENTIFIER: InherentIdentifier = *b"author__";

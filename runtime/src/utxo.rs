@@ -1,23 +1,17 @@
 // We make sure this pallet uses `no_std` for compiling to Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use parity_scale_codec::{Decode, Encode};
+use scale_info::TypeInfo;
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
-
-use parity_scale_codec::{Decode, Encode};
 use sp_core::{
-	H256, H512,
-	sr25519::{Public, Signature},
-    ByteArray,
+    sr25519::{Public, Signature},
+    ByteArray, H256, H512,
 };
-use sp_std::{
-    collections::btree_map::BTreeMap,
-    vec::Vec
-};
-use sp_runtime::{
-	traits::{BlakeTwo256, Hash, SaturatedConversion},
-};
-use scale_info::TypeInfo;
+use sp_runtime::traits::{BlakeTwo256, Hash, SaturatedConversion};
+use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
+
 use super::{block_author::BlockAuthor, issuance::Issuance};
 
 pub type Value = u128;
@@ -28,36 +22,36 @@ pub use pallet::*;
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Default, Clone, Encode, Decode, Hash, Debug, TypeInfo)]
 pub struct Transaction {
-	/// UTXOs to be used as inputs for current transaction
-	pub inputs: Vec<TransactionInput>,
+    /// UTXOs to be used as inputs for current transaction
+    pub inputs: Vec<TransactionInput>,
 
-	/// UTXOs to be created as a result of current transaction dispatch
-	pub outputs: Vec<TransactionOutput>,
+    /// UTXOs to be created as a result of current transaction dispatch
+    pub outputs: Vec<TransactionOutput>,
 }
 
 /// Single transaction input that refers to one UTXO
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Default, Clone, Encode, Decode, Hash, Debug, TypeInfo)]
 pub struct TransactionInput {
-	/// Reference to an UTXO to be spent
-	pub outpoint: H256,
+    /// Reference to an UTXO to be spent
+    pub outpoint: H256,
 
-	/// Proof that transaction owner is authorized to spend referred UTXO &
-	/// that the entire transaction is untampered
-	pub sigscript: H512,
+    /// Proof that transaction owner is authorized to spend referred UTXO &
+    /// that the entire transaction is untampered
+    pub sigscript: H512,
 }
 
 /// Single transaction output to create upon transaction dispatch
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Default, Clone, Encode, Decode, Hash, Debug, TypeInfo)]
 pub struct TransactionOutput {
-	/// Value associated with this output
-	pub value: Value,
+    /// Value associated with this output
+    pub value: Value,
 
-	/// Public key associated with this output. In order to spend this output
-	/// owner must provide a proof by hashing the whole `Transaction` and
-	/// signing it with a corresponding private key.
-	pub pubkey: H256,
+    /// Public key associated with this output. In order to spend this output
+    /// owner must provide a proof by hashing the whole `Transaction` and
+    /// signing it with a corresponding private key.
+    pub pubkey: H256,
 }
 
 #[frame_support::pallet(dev_mode)]
@@ -70,9 +64,8 @@ pub mod pallet {
     #[pallet::config]
     pub trait Config: frame_system::Config {
         /// Because this pallet emits events, it depends on the runtime's definition of an event.
-		/// https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/reference_docs/frame_runtime_types/index.html
-        type RuntimeEvent: From<Event<Self>>
-    		+ IsType<<Self as frame_system::Config>::RuntimeEvent>;
+        /// https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/reference_docs/frame_runtime_types/index.html
+        type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
         /// A source to determine the block author
         type BlockAuthor: BlockAuthor;
@@ -80,7 +73,6 @@ pub mod pallet {
         /// A source to determine the issuance portion of the block reward
         type Issuance: Issuance<BlockNumberFor<Self>, Value>;
     }
-
 
     #[pallet::pallet]
     pub struct Pallet<T>(_);
@@ -90,9 +82,8 @@ pub mod pallet {
     /// and then dispersed to validators on block finalization.
     #[pallet::storage]
     #[pallet::getter(fn total_reward)]
-    pub type TotalReward<T: Config> =
-        StorageValue<_, Value, ValueQuery>;
-     
+    pub type TotalReward<T: Config> = StorageValue<_, Value, ValueQuery>;
+
     /// All valid unspent transaction outputs are stored in this map.
     /// Initial set of UTXO is populated from the list stored in genesis.
     /// We use the identity hasher here because the cryptographic hashing is
@@ -101,24 +92,19 @@ pub mod pallet {
     #[pallet::storage]
     #[pallet::getter(fn utxo_store)]
     pub type UtxoStore<T: Config> = StorageMap<
-            Hasher = Identity,
-            Key=H256,
-            Value=TransactionOutput,
-            QueryKind=OptionQuery
-        >;
-     
+        Hasher = Identity,
+        Key = H256,
+        Value = TransactionOutput,
+        QueryKind = OptionQuery,
+    >;
+
     /// Keep track of latest UTXO hash of account
     /// Mapping from `sr25519::Pubkey` to `BlakeTwo256::hash_of(transaction, index)`
     #[pallet::storage]
     #[pallet::getter(fn utxo_of)]
-    pub type UtxoOf<T: Config> = StorageMap<
-            Hasher = Identity,
-            Key=Public,
-            Value=H256,
-            QueryKind=OptionQuery
-        >;
+    pub type UtxoOf<T: Config> =
+        StorageMap<Hasher = Identity, Key = Public, Value = H256, QueryKind = OptionQuery>;
 
-    
     #[pallet::genesis_config]
     pub struct GenesisConfig<T: Config> {
         pub _ph_data: PhantomData<T>,
@@ -134,7 +120,7 @@ pub mod pallet {
             }
         }
     }
-    
+
     #[cfg(feature = "std")]
     impl<T: Config> Default for GenesisConfig<T> {
         fn default() -> Self {
@@ -144,9 +130,9 @@ pub mod pallet {
             }
         }
     }
-        
+
     /// Pallets use events to inform users when important changes are made.
-	/// https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/guides/your_first_pallet/index.html#event-and-error
+    /// https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/guides/your_first_pallet/index.html#event-and-error
     #[pallet::event]
     #[pallet::generate_deposit(pub(super) fn deposit_event)]
     pub enum Event<T: Config> {
@@ -155,17 +141,17 @@ pub mod pallet {
         /// UTXO out processed
         TransactionOutputProcessed(H256),
         /// Reward distributed to `BlockAuthor`
-		RewardDistributed(Value, H256),
+        RewardDistributed(Value, H256),
         /// Faucet to `To`
-		Faucet(Value, H256),
+        Faucet(Value, H256),
         /// No one get reward
-        RewardWasted
+        RewardWasted,
     }
 
     /// Errors inform users that something went wrong.
-	/// https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/guides/your_first_pallet/index.html#event-and-error
-	#[pallet::error]
-	pub enum Error<T> {
+    /// https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/guides/your_first_pallet/index.html#event-and-error
+    #[pallet::error]
+    pub enum Error<T> {
         /// Missing `Transaction` Input
         MissingInput,
         /// Reward overflow
@@ -192,16 +178,15 @@ pub mod pallet {
         InvalidSignature,
     }
 
-
     #[pallet::hooks]
     impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
         fn on_finalize(_n: BlockNumberFor<T>) {
             match T::BlockAuthor::block_author() {
-				// Block author did not provide key to claim reward
-				None => Self::deposit_event(Event::RewardWasted),
-				// Block author did provide key, so issue thir reward
-				Some(author) => Self::disperse_reward(&author),
-			}
+                // Block author did not provide key to claim reward
+                None => Self::deposit_event(Event::RewardWasted),
+                // Block author did provide key, so issue thir reward
+                Some(author) => Self::disperse_reward(&author),
+            }
         }
     }
 
@@ -209,7 +194,10 @@ pub mod pallet {
     impl<T: Config> Pallet<T> {
         pub fn spend(_origin: OriginFor<T>, transaction: Transaction) -> DispatchResult {
             let transaction_validity = Self::validate_transaction(&transaction)?;
-            ensure!(transaction_validity.requires.is_empty(), Error::<T>::MissingInput);
+            ensure!(
+                transaction_validity.requires.is_empty(),
+                Error::<T>::MissingInput
+            );
 
             Self::update_storage(&transaction, transaction_validity.priority as Value)?;
 
@@ -218,16 +206,11 @@ pub mod pallet {
             Ok(())
         }
 
-        pub fn faucet(
-            _origin: OriginFor<T>,
-            to: Public,
-            value: Value
-        ) -> DispatchResult {
+        pub fn faucet(_origin: OriginFor<T>, to: Public, value: Value) -> DispatchResult {
             let _ = Self::deposit_creating(&to, value);
             Ok(())
         }
     }
-
 
     impl<T: Config> Pallet<T> {
         /// Update storage to reflect changes made by transaction
@@ -250,7 +233,10 @@ pub mod pallet {
                 let hash = BlakeTwo256::hash_of(&(&transaction.encode(), index));
                 log::info!("hash: {:?}", hash);
                 // validated before, this is safe
-                index = index.checked_add(1).ok_or(Error::<T>::MaximumTransactionDepth).unwrap();
+                index = index
+                    .checked_add(1)
+                    .ok_or(Error::<T>::MaximumTransactionDepth)
+                    .unwrap();
                 Self::store_utxo(output, hash);
                 Self::deposit_event(Event::TransactionOutputProcessed(hash));
             }
@@ -260,17 +246,18 @@ pub mod pallet {
 
         /// Redistribute combined reward value to block Author
         fn disperse_reward(author: &Public) {
-            let reward = TotalReward::<T>::take() + T::Issuance::issuance(
-                frame_system::Pallet::<T>::block_number()
-            );
+            let reward = TotalReward::<T>::take()
+                + T::Issuance::issuance(frame_system::Pallet::<T>::block_number());
 
             let utxo = TransactionOutput {
                 value: reward,
                 pubkey: H256::from_slice(author.as_slice()),
             };
 
-            let hash = BlakeTwo256::hash_of(&(&utxo,
-                        frame_system::Pallet::<T>::block_number().saturated_into::<u64>()));
+            let hash = BlakeTwo256::hash_of(&(
+                &utxo,
+                frame_system::Pallet::<T>::block_number().saturated_into::<u64>(),
+            ));
 
             Self::store_utxo(&utxo, hash);
             Self::deposit_event(Event::RewardDistributed(reward, hash));
@@ -299,9 +286,9 @@ pub mod pallet {
             UtxoOf::<T>::insert(pubkey, hash);
         }
 
-
         // Strips a transaction of its Signature fields by replacing value with ZERO-initialized fixed hash.
-        fn get_simple_transaction(transaction: &Transaction) -> Vec<u8> {//&'a [u8] {
+        fn get_simple_transaction(transaction: &Transaction) -> Vec<u8> {
+            //&'a [u8] {
             let mut trx = transaction.clone();
             for input in trx.inputs.iter_mut() {
                 input.sigscript = H512::zero();
@@ -324,7 +311,6 @@ pub mod pallet {
         //     missing_utxos
         // }
 
-
         /// Check transaction for validity, errors, & race conditions
         /// Called by both transaction pool and runtime execution
         ///
@@ -338,18 +324,31 @@ pub mod pallet {
         /// - sum of input and output values does not overflow
         /// - provided signatures are valid
         /// - transaction outputs cannot be modified by malicious nodes
-        pub fn validate_transaction(transaction: &Transaction) -> Result<ValidTransaction, &'static str> {
+        pub fn validate_transaction(
+            transaction: &Transaction,
+        ) -> Result<ValidTransaction, &'static str> {
             // Check basic requirements
             ensure!(!transaction.inputs.is_empty(), Error::<T>::EmptyInput);
             ensure!(!transaction.outputs.is_empty(), Error::<T>::EmptyOutput);
 
             {
-                let input_set: BTreeMap<_, ()> = transaction.inputs.iter().map(|input| (input, ())).collect();
-                ensure!(input_set.len() == transaction.inputs.len(), Error::<T>::DuplicatedInput);
+                let input_set: BTreeMap<_, ()> =
+                    transaction.inputs.iter().map(|input| (input, ())).collect();
+                ensure!(
+                    input_set.len() == transaction.inputs.len(),
+                    Error::<T>::DuplicatedInput
+                );
             }
             {
-                let output_set: BTreeMap<_, ()> = transaction.outputs.iter().map(|output| (output, ())).collect();
-                ensure!(output_set.len() == transaction.outputs.len(), Error::<T>::DuplicatedOutput);
+                let output_set: BTreeMap<_, ()> = transaction
+                    .outputs
+                    .iter()
+                    .map(|output| (output, ()))
+                    .collect();
+                ensure!(
+                    output_set.len() == transaction.outputs.len(),
+                    Error::<T>::DuplicatedOutput
+                );
             }
 
             let mut total_input: Value = 0;
@@ -367,13 +366,15 @@ pub mod pallet {
                 if let Some(input_utxo) = UtxoStore::<T>::get(&input.outpoint) {
                     log::info!("encoded tx: {:?}", simple_transaction);
                     let is_valid_sig = sp_io::crypto::sr25519_verify(
-                            &Signature::from_raw(*input.sigscript.as_fixed_bytes()),
-                            &simple_transaction,
-                            &Public::from_h256(input_utxo.pubkey)
+                        &Signature::from_raw(*input.sigscript.as_fixed_bytes()),
+                        &simple_transaction,
+                        &Public::from_h256(input_utxo.pubkey),
                     );
                     log::info!("is_valid_sig: {:?}", is_valid_sig);
                     ensure!(is_valid_sig, Error::<T>::InvalidSignature);
-                    total_input = total_input.checked_add(input_utxo.value).ok_or(Error::<T>::InputOverflow)?;
+                    total_input = total_input
+                        .checked_add(input_utxo.value)
+                        .ok_or(Error::<T>::InputOverflow)?;
                 } else {
                     missing_utxos.push(input.outpoint.clone().as_fixed_bytes().to_vec());
                 }
@@ -383,16 +384,25 @@ pub mod pallet {
             for output in transaction.outputs.iter() {
                 ensure!(output.value > 0, Error::<T>::ZeroAmount);
                 let hash = BlakeTwo256::hash_of(&(&transaction.encode(), output_index));
-                output_index = output_index.checked_add(1).ok_or(Error::<T>::MaximumTransactionDepth)?;
-                ensure!(!UtxoStore::<T>::contains_key(hash), Error::<T>::DuplicatedOutput);
-                total_output = total_output.checked_add(output.value).ok_or(Error::<T>::OutputOverflow)?;
+                output_index = output_index
+                    .checked_add(1)
+                    .ok_or(Error::<T>::MaximumTransactionDepth)?;
+                ensure!(
+                    !UtxoStore::<T>::contains_key(hash),
+                    Error::<T>::DuplicatedOutput
+                );
+                total_output = total_output
+                    .checked_add(output.value)
+                    .ok_or(Error::<T>::OutputOverflow)?;
                 new_utxos.push(hash.as_fixed_bytes().to_vec());
             }
 
             // If no race condition, check the math
             if missing_utxos.is_empty() {
-                ensure!( total_input >= total_output, Error::<T>::OutputOverInput);
-                reward = total_input.checked_sub(total_output).ok_or(Error::<T>::RewardOverflow)?;
+                ensure!(total_input >= total_output, Error::<T>::OutputOverInput);
+                reward = total_input
+                    .checked_sub(total_output)
+                    .ok_or(Error::<T>::RewardOverflow)?;
             }
 
             // Returns transaction details

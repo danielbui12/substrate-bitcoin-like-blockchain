@@ -1,8 +1,13 @@
 use std::str::FromStr;
 
 use academy_pow_runtime::{
-    AccountId, RuntimeGenesisConfig, SS58Prefix, Signature, TOKEN_DECIMALS, TOKEN_SYMBOL,
-    WASM_BINARY, 
+    AccountId,
+    RuntimeGenesisConfig,
+    SS58Prefix,
+    Signature,
+    TOKEN_DECIMALS,
+    TOKEN_SYMBOL,
+    WASM_BINARY,
     // utxo,
 };
 use multi_pow::{ForkHeights, ForkingConfig, MaxiPosition};

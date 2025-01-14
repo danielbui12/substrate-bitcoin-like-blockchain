@@ -62,7 +62,7 @@ pub mod pallet {
 
         /// Now that the pallet is instantiable, we need a way to decide which blocks are
         /// relevant to this instance. This function does just that.
-        /// 
+        ///
         /// The default implementation assumes that all blocks are relevant which is what
         /// you probably want when there is only a single instance.
         fn relevant_to_this_instance() -> bool {
@@ -91,11 +91,13 @@ pub mod pallet {
     /// Current difficulty.
     #[pallet::storage]
     #[pallet::getter(fn difficulty)]
-    pub type CurrentDifficulty<T: Config<I>, I: 'static = ()> = StorageValue<_, Difficulty, ValueQuery>;
+    pub type CurrentDifficulty<T: Config<I>, I: 'static = ()> =
+        StorageValue<_, Difficulty, ValueQuery>;
 
     /// Initial difficulty.
     #[pallet::storage]
-    pub type InitialDifficulty<T: Config<I>, I: 'static = ()> = StorageValue<_, Difficulty, ValueQuery>;
+    pub type InitialDifficulty<T: Config<I>, I: 'static = ()> =
+        StorageValue<_, Difficulty, ValueQuery>;
 
     #[pallet::genesis_config]
     pub struct GenesisConfig<T: Config<I>, I: 'static = ()> {
@@ -129,7 +131,7 @@ pub mod pallet {
         fn on_finalize(_n: BlockNumberFor<T>) {
             // First check if this is block is relevant to this instance of the difficulty adjustment algorithm
             if !T::relevant_to_this_instance() {
-                return
+                return;
             }
 
             let mut data = PastDifficultiesAndTimestamps::<T, I>::get();

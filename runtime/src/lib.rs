@@ -8,12 +8,11 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-use frame_support::instances::{Instance1, Instance2, Instance3};
 pub use frame_support::{
     construct_runtime, parameter_types,
     traits::{
-        Currency, EstimateNextNewSession, Imbalance, KeyOwnerProofSystem, LockIdentifier, Nothing,
-        OnUnbalanced, ValidatorSet, IsSubType
+        Currency, EstimateNextNewSession, Imbalance, IsSubType, KeyOwnerProofSystem,
+        LockIdentifier, Nothing, OnUnbalanced, ValidatorSet,
     },
     weights::{
         constants::{
@@ -21,10 +20,11 @@ pub use frame_support::{
         },
         IdentityFee, Weight,
     },
-    StorageValue, Callable
+    Callable, StorageValue,
 };
 use frame_support::{
     genesis_builder_helper::{build_config, create_default_config},
+    instances::{Instance1, Instance2, Instance3},
     sp_runtime::Perquintill,
     traits::{ConstU128, ConstU32, ConstU8},
 };
@@ -39,14 +39,15 @@ use sp_core::OpaqueMetadata;
 // A few exports that help ease life for downstream crates.
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
-use sp_runtime::DigestItem;
 use sp_runtime::{
     create_runtime_str, generic,
     traits::{
         AccountIdLookup, BlakeTwo256, Block as BlockT, Bounded, IdentifyAccount, One, Verify,
     },
-    transaction_validity::{TransactionValidityError, InvalidTransaction, TransactionSource, TransactionValidity},
-    ApplyExtrinsicResult, MultiSignature,
+    transaction_validity::{
+        InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
+    },
+    ApplyExtrinsicResult, DigestItem, MultiSignature,
 };
 pub use sp_runtime::{FixedPointNumber, Perbill, Permill};
 use sp_std::prelude::*;
@@ -243,12 +244,11 @@ fn current_blocks_mining_algo() -> SupportedHashes {
     System::digest()
         .logs
         .iter()
-        .find_map(|digest_item| {
-            match digest_item {
-                DigestItem::PreRuntime(POW_ENGINE_ID, pre_digest) =>
-                    PreDigest::decode(&mut &pre_digest[..]).map(|d| d.1).ok(),
-                _ => None,
+        .find_map(|digest_item| match digest_item {
+            DigestItem::PreRuntime(POW_ENGINE_ID, pre_digest) => {
+                PreDigest::decode(&mut &pre_digest[..]).map(|d| d.1).ok()
             }
+            _ => None,
         })
         .expect("There should be exactly one pow pre-digest item")
 }
@@ -329,11 +329,10 @@ impl pallet_transaction_payment::Config for Runtime {
     type FeeMultiplierUpdate = ConstFeeMultiplier<FeeMultiplier>;
 }
 
-
 impl utxo::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type BlockAuthor = BlockAuthor;
-	type Issuance = issuance::BitcoinHalving;
+    type RuntimeEvent = RuntimeEvent;
+    type BlockAuthor = BlockAuthor;
+    type Issuance = issuance::BitcoinHalving;
 }
 
 construct_runtime!(
@@ -342,11 +341,11 @@ construct_runtime!(
         Timestamp: pallet_timestamp,
         Balances: pallet_balances,
         TransactionPayment: pallet_transaction_payment,
-        Md5DifficultyAdjustment: difficulty::<Instance1>,
-        Sha3DifficultyAdjustment: difficulty::<Instance2>,
-        KeccakDifficultyAdjustment: difficulty::<Instance3>,
+        Md5DifficultyAdjustment: difficulty<Instance1>,
+        Sha3DifficultyAdjustment: difficulty<Instance2>,
+        KeccakDifficultyAdjustment: difficulty<Instance3>,
         BlockAuthor: block_author,
-		Utxo: utxo,
+        Utxo: utxo,
     }
 );
 
@@ -438,20 +437,20 @@ impl_runtime_apis! {
             block_hash: <Block as BlockT>::Hash,
         ) -> TransactionValidity {
             // Extrinsics representing UTXO transaction need some special handling
-			if let Some(&utxo::Call::spend{ ref transaction }) = IsSubType::<<Utxo as Callable<Runtime>>::RuntimeCall>::is_sub_type(&tx.function) 
+            if let Some(&utxo::Call::spend{ ref transaction }) = IsSubType::<<Utxo as Callable<Runtime>>::RuntimeCall>::is_sub_type(&tx.function)
             {
-				match Utxo::validate_transaction(&transaction) {
-					// Transaction verification failed
-					Err(e) => {
-						sp_runtime::print(e);
-						return Err(TransactionValidityError::Invalid(InvalidTransaction::Custom(1)));
-					}
-					// Race condition, or Transaction is good to go
-					Ok(tv) => { return Ok(tv); }
-				}
-			}
+                match Utxo::validate_transaction(&transaction) {
+                    // Transaction verification failed
+                    Err(e) => {
+                        sp_runtime::print(e);
+                        return Err(TransactionValidityError::Invalid(InvalidTransaction::Custom(1)));
+                    }
+                    // Race condition, or Transaction is good to go
+                    Ok(tv) => { return Ok(tv); }
+                }
+            }
 
-			// Fall back to default logic for non UTXO-spending extrinsics
+            // Fall back to default logic for non UTXO-spending extrinsics
             Executive::validate_transaction(source, tx, block_hash)
         }
     }
@@ -490,7 +489,7 @@ impl_runtime_apis! {
         }
     }
 
-    impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance> for Runtime 
+    impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance> for Runtime
     {
         fn query_info(
             uxt: <Block as BlockT>::Extrinsic,
