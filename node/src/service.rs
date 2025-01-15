@@ -7,33 +7,29 @@ use academy_pow_runtime::{self, opaque::Block, PreDigest, RuntimeApi};
 use multi_pow::{ForkingConfig, MultiPow, SupportedHashes};
 use parity_scale_codec::Encode;
 use sc_consensus::LongestChain;
-use sc_executor::NativeElseWasmExecutor;
 use sc_service::{error::Error as ServiceError, Configuration, PartialComponents, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryWorker};
 use sp_core::sr25519;
 
-// Our native executor instance.
-pub struct ExecutorDispatch;
-
-impl sc_executor::NativeExecutionDispatch for ExecutorDispatch {
-    type ExtendHostFunctions = ();
-
-    fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-        academy_pow_runtime::api::dispatch(method, data)
-    }
-
-    fn native_version() -> sc_executor::NativeVersion {
-        academy_pow_runtime::native_version()
-    }
-}
-
-type FullClient =
-    sc_service::TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<ExecutorDispatch>>;
+pub(crate) type FullClient = sc_service::TFullClient<
+	Block,
+	RuntimeApi,
+	sc_executor::WasmExecutor<sp_io::SubstrateHostFunctions>,
+>;
 type FullBackend = sc_service::TFullBackend<Block>;
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
 
 type BasicImportQueue = sc_consensus::DefaultImportQueue<Block>;
 type BoxBlockImport = sc_consensus::BoxBlockImport<Block>;
+
+pub type Service = PartialComponents<
+    FullClient,
+    FullBackend,
+    FullSelectChain,
+    BasicImportQueue,
+    sc_transaction_pool::FullPool<Block, FullClient>,
+    (BoxBlockImport, Option<Telemetry>),
+>;
 
 /// Returns most parts of a service. Not enough to run a full chain,
 /// But enough to perform chain operations like purge-chain
@@ -41,17 +37,7 @@ type BoxBlockImport = sc_consensus::BoxBlockImport<Block>;
 pub fn new_partial(
     config: &Configuration,
     fork_config: ForkingConfig,
-) -> Result<
-    PartialComponents<
-        FullClient,
-        FullBackend,
-        FullSelectChain,
-        BasicImportQueue,
-        sc_transaction_pool::FullPool<Block, FullClient>,
-        (BoxBlockImport, Option<Telemetry>),
-    >,
-    ServiceError,
-> {
+) -> Result<Service, ServiceError> {
     let telemetry = config
         .telemetry_endpoints
         .clone()
@@ -63,8 +49,7 @@ pub fn new_partial(
         })
         .transpose()?;
 
-    let executor = sc_service::new_native_or_wasm_executor(config);
-
+    let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(config);
     let (client, backend, keystore_container, task_manager) =
         sc_service::new_full_parts::<Block, RuntimeApi, _>(
             config,
@@ -130,7 +115,9 @@ pub fn new_partial(
 }
 
 /// Builds a new service for a full client.
-pub fn new_full(
+pub fn new_full<
+    N: sc_network::NetworkBackend<Block, <Block as sp_runtime::traits::Block>::Hash>,
+>(
     config: Configuration,
     fork_config: ForkingConfig,
     sr25519_public_key: sr25519::Public,
@@ -148,7 +135,12 @@ pub fn new_full(
         other: (pow_block_import, mut telemetry),
     } = new_partial(&config, fork_config)?;
 
-    let net_config = sc_network::config::FullNetworkConfiguration::new(&config.network);
+    let net_config = sc_network::config::FullNetworkConfiguration::<
+        Block,
+        <Block as sp_runtime::traits::Block>::Hash,
+        N,
+    >::new(&config.network);
+	let metrics = sc_network::NotificationMetrics::new(None);
 
     let (network, system_rpc_tx, tx_handler_controller, network_starter, sync_service) =
         sc_service::build_network(sc_service::BuildNetworkParams {
@@ -161,6 +153,7 @@ pub fn new_full(
             block_announce_validator_builder: None,
             warp_sync_params: None,
             block_relay: None,
+            metrics: metrics,
         })?;
 
     let role = config.role.clone();

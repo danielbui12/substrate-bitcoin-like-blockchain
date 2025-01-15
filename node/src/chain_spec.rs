@@ -2,7 +2,6 @@ use std::str::FromStr;
 
 use academy_pow_runtime::{
     AccountId,
-    RuntimeGenesisConfig,
     SS58Prefix,
     Signature,
     TOKEN_DECIMALS,
@@ -19,7 +18,7 @@ use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig, ForkingExtensions>;
+pub type ChainSpec = sc_service::GenericChainSpec<ForkingExtensions>;
 
 /// PoW and Forking related chain spec extensions to configure the client side forking behavior.
 ///
