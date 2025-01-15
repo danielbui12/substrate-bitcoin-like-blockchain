@@ -18,7 +18,7 @@ use academy_pow_runtime::Block;
 use multi_pow::{ForkingConfig, MaxiPosition};
 use sc_cli::SubstrateCli;
 use sc_service::PartialComponents;
-use sp_core::sr25519::Public;
+use sp_core::sr25519;
 
 use crate::{
     chain_spec::{self, ForkingExtensions},
@@ -148,7 +148,7 @@ pub fn run() -> sc_cli::Result<()> {
         None => {
             // Get the mining account from the cli
             let bytes: [u8; 32] = cli.pow.public_key_bytes(cli.run.get_keyring());
-            let sr25519_public_key = Public(bytes);
+            let sr25519_public_key = sr25519::Public::from_raw(bytes);
 
             let runner = cli.create_runner(&cli.run)?;
             runner.run_node_until_exit(|config| async move {
@@ -168,7 +168,7 @@ pub fn run() -> sc_cli::Result<()> {
                     old_config => old_config,
                 };
 
-                service::new_full(
+                service::new_full::<sc_network::Litep2pNetworkBackend>(
                     config,
                     forking_config,
                     //TODO Combine the following three fields into a MiningConfig analogous to the ForkingConfig
