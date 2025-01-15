@@ -97,7 +97,7 @@ pub struct MultiHash {
 /// overflows the bounds of U256, then the product (and thus the hash)
 /// was too high.
 pub fn simple_hash_meets_difficulty(hash: &H256, difficulty: U256) -> bool {
-    let num_hash = U256::from(&hash[..]);
+    let num_hash = U256::from_little_endian(&hash[..]);
     let (_, overflowed) = num_hash.overflowing_mul(difficulty);
 
     !overflowed
@@ -226,7 +226,7 @@ where
 
         log::debug!("✅ Decode seal passed!");
 
-        let Some(encoded_pre_digest) = pre_digest else {
+        let Some(_encoded_pre_digest) = pre_digest else {
             return Ok(false);
         };
 

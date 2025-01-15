@@ -121,12 +121,11 @@ pub mod pallet {
         }
     }
 
-    #[cfg(feature = "std")]
     impl<T: Config> Default for GenesisConfig<T> {
         fn default() -> Self {
             Self {
                 _ph_data: Default::default(),
-                genesis_utxos: vec![],
+                genesis_utxos: Vec::<TransactionOutput>::new(),
             }
         }
     }
