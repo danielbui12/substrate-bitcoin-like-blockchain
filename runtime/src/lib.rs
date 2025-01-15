@@ -341,9 +341,9 @@ construct_runtime!(
         Timestamp: pallet_timestamp,
         Balances: pallet_balances,
         TransactionPayment: pallet_transaction_payment,
-        Md5DifficultyAdjustment: difficulty<Instance1>,
-        Sha3DifficultyAdjustment: difficulty<Instance2>,
-        KeccakDifficultyAdjustment: difficulty<Instance3>,
+        Md5DifficultyAdjustment: difficulty::<Instance1>,
+        Sha3DifficultyAdjustment: difficulty::<Instance2>,
+        KeccakDifficultyAdjustment: difficulty::<Instance3>,
         BlockAuthor: block_author,
         Utxo: utxo,
     }
