@@ -7,14 +7,14 @@ use academy_pow_runtime::{
     TOKEN_DECIMALS,
     TOKEN_SYMBOL,
     WASM_BINARY,
-    // utxo,
+    utxo::{GenesisUtxoType, Value},
 };
 use multi_pow::{ForkHeights, ForkingConfig, MaxiPosition};
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
 use sp_core::{sr25519, Pair, Public};
-// use sp_core::{ByteArray, H256};
+use sp_core::{ByteArray, H256};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
@@ -163,34 +163,44 @@ pub fn testnet_config() -> Result<ChainSpec, String> {
 
 fn genesis(
     endowed_accounts: Vec<AccountId>,
-    _initial_difficulty: u32,
-    _utxo_genesis_accounts: Vec<AccountId>,
+    initial_difficulty: u32,
+    utxo_genesis_accounts: Vec<AccountId>,
 ) -> serde_json::Value {
     serde_json::json!({
         "balances": {
             // Configure endowed accounts with initial balance of 1 << 50.
             "balances": endowed_accounts.iter().cloned().map(|k| (k, 1u64 << 50)).collect::<Vec<_>>(),
         },
-        // TODO Figure out how to convert a u32 into a proper json value here.
-        // pub struct U256(pub [u64; 4]);
-        // "md5DifficultyAdjustment": {
-        //     "initialDifficulty": initial_difficulty.to_le_bytes(),
-        // },
-        // "sha3DifficultyAdjustment": {
-        //     "initialDifficulty": initial_difficulty.to_le_bytes(),
-        // },
-        // "keccakDifficultyAdjustment": {
-        //     "initialDifficulty": initial_difficulty.to_le_bytes(),
-        // },
-        // "utxo": {
-        //     "genesis_utxos": utxo_genesis_accounts
-        //         .iter().cloned()
-        //         .map(|k| utxo::TransactionOutput {
-        //             value: (1u64 << 50).into(),
-        //             pubkey: H256::from_slice(k.as_slice()),
-        //         }).collect::<Vec<_>>(),
-        // },
+        "keccakDifficultyAdjustment": {
+            "initialDifficulty": u32_to_u8_32(initial_difficulty),
+        },
+        "md5DifficultyAdjustment": {
+            "initialDifficulty": u32_to_u8_32(initial_difficulty),
+        },
+        "sha3DifficultyAdjustment": {
+            "initialDifficulty": u32_to_u8_32(initial_difficulty),
+        },
+        "utxo": {
+            "genesisUtxos": utxo_genesis_accounts
+                .iter().cloned()
+                .map(|k| {
+                    let hash = H256::from_slice(&k.as_slice()); 
+                    let value: Value = (1u64 << 50).into();
+                    let genesis_utxo: GenesisUtxoType = (value, hash);
+
+                    genesis_utxo
+                }).collect::<Vec<GenesisUtxoType>>(),
+        },
     })
+}
+
+/// Convert u32 (default value) to [u8;32] (U256)
+/// in little-endian format
+pub fn u32_to_u8_32(num: u32) -> [u8; 32] {
+    let mut result = [0u8; 32];
+    let bytes = num.to_le_bytes(); 
+    result[..4].copy_from_slice(&bytes);
+    result
 }
 
 fn system_properties() -> sc_chain_spec::Properties {

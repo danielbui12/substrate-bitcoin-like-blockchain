@@ -54,6 +54,19 @@ pub struct TransactionOutput {
     pub pubkey: H256,
 }
 
+
+/// Because code is built on `no-std` feature.
+/// And we got error:
+/// ```
+/// ...
+/// the trait `Serialize` is not implemented for `TransactionOutput`
+/// the trait `Deserialize<'_>` is not implemented for `TransactionOutput`
+/// ...
+/// ```
+///
+/// Hence, we need to simplify data type to make it work in both `std` and `no-std` feature.
+pub type GenesisUtxoType = (Value, H256);
+
 #[frame_support::pallet(dev_mode)]
 pub mod pallet {
     use frame_support::pallet_prelude::*;
@@ -105,30 +118,31 @@ pub mod pallet {
     pub type UtxoOf<T: Config> =
         StorageMap<Hasher = Identity, Key = Public, Value = H256, QueryKind = OptionQuery>;
 
-    // #[pallet::genesis_config]
-    // pub struct GenesisConfig<T: Config> {
-    //     pub _ph_data: PhantomData<T>,
-    //     pub genesis_utxos: Vec<TransactionOutput>,
-    // }
+    #[pallet::genesis_config]
+    pub struct GenesisConfig<T: Config> {
+        pub _ph_data: Option<PhantomData<T>>,
+        pub genesis_utxos: Vec<GenesisUtxoType>,
+    }
 
-    // #[pallet::genesis_build]
-    // impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
-    //     fn build(&self) {
-    //         for utxo in self.genesis_utxos.iter() {
-    //             let hash = BlakeTwo256::hash_of(&utxo);
-    //             Pallet::<T>::store_utxo(&utxo, hash);
-    //         }
-    //     }
-    // }
+    #[pallet::genesis_build]
+    impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
+        fn build(&self) {
+            for utxo in self.genesis_utxos.iter() {
+                let utxo = TransactionOutput { value: utxo.0, pubkey: utxo.1 };
+                let hash = BlakeTwo256::hash_of(&utxo);
+                Pallet::<T>::store_utxo(&utxo, hash);
+            }
+        }
+    }
 
-    // impl<T: Config> Default for GenesisConfig<T> {
-    //     fn default() -> Self {
-    //         Self {
-    //             _ph_data: Default::default(),
-    //             genesis_utxos: Vec::<TransactionOutput>::new(),
-    //         }
-    //     }
-    // }
+    impl<T: Config> Default for GenesisConfig<T> {
+        fn default() -> Self {
+            Self {
+                _ph_data: Default::default(),
+                genesis_utxos: Vec::<GenesisUtxoType>::new(),
+            }
+        }
+    }
 
     /// Pallets use events to inform users when important changes are made.
     /// https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/guides/your_first_pallet/index.html#event-and-error
@@ -280,7 +294,6 @@ pub mod pallet {
             UtxoStore::<T>::insert(hash, utxo);
             // Convert H256 back to sr25519::Public
             let pubkey = Public::from_h256(utxo.pubkey);
-            log::info!("pubkey: {:?}", pubkey);
             UtxoOf::<T>::insert(pubkey, hash);
         }
 
