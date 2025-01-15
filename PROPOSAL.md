@@ -33,12 +33,14 @@ Phase 3: Documentation
       - What is PoW.
       - How PoW work.
       - Comparing with Proof-of-Stake.
+      - Code breakdown for PoW.
    - UTXO account model:
       - What is UTXO account model.
       - Comparing with Account based.
    - Document project setup and environment configuration:
       - Comment detailed on code logic.
       - Provide reference link to relevant Polkadot SDK implementation & knowledge
+      - Code breakdown for UTXO.
    - Provide step-by-step guides for:  
       - Running the blockchain locally.
       - Demo usage of UTXO account model.

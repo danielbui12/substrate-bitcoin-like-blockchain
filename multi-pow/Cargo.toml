@@ -18,6 +18,8 @@ sp-consensus-pow = { workspace = true }
 sp-core = { workspace = true }
 sp-runtime = { workspace = true }
 
+log = { workspace = true }
+
 [features]
 default = [ "std" ]
 std = [

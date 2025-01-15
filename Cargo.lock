@@ -4183,6 +4183,7 @@ dependencies = [
 name = "multi-pow"
 version = "3.0.0"
 dependencies = [
+ "log",
  "md5",
  "parity-scale-codec",
  "sc-client-api",

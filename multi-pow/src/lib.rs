@@ -224,19 +224,29 @@ where
             Err(_) => return Ok(false),
         };
 
+        log::debug!("✅ Decode seal passed!");
+
         let Some(encoded_pre_digest) = pre_digest else {
             return Ok(false);
         };
+
+        log::debug!("✅ Checksum digest passed!");
+
+        // TODO idk why this always return md5 only
         let algo_from_predigest = match SupportedHashes::decode(&mut &encoded_pre_digest[..]) {
             Ok(algo) => algo,
             Err(_) => return Ok(false),
         };
+
+        log::debug!("✅ Get algorithm from digest passed!");
 
         // Check that the pre-digest algo matches the seal algo
         // TODO it shouldn't be necessary to have both.
         if seal.work.algo != algo_from_predigest {
             return Ok(false);
         }
+
+        log::debug!("✅ Checksum algorithm from seal passed!");
 
         // This is where we handle forks on the verification side.
         // We will still need to handle it in the mining algorithm somewhere.
@@ -254,6 +264,8 @@ where
         .map_err(|_| ())
         .expect("Block numbers can be converted to u32 (because they are u32)");
 
+        log::debug!("✅ Checksum parent block number passed!");
+
         // Here we handle the forking logic according the the node operator's request.
         let valid_algorithm = match self.fork_config {
             ForkingConfig::Manual => manual_fork_validation(parent_number, seal.work.algo),
@@ -266,10 +278,14 @@ where
             return Ok(false);
         }
 
+        log::debug!("✅ Valid algorithm!");
+
         // See whether the hash meets the difficulty requirement. If not, fail fast.
         if !multi_hash_meets_difficulty(&seal.work, difficulty) {
             return Ok(false);
         }
+
+        log::debug!("✅ Checksum difficulty passed!");
 
         // Make sure the provided work actually comes from the correct pre_hash
         let compute = Compute {
@@ -281,6 +297,10 @@ where
         if compute.compute(seal.work.algo) != seal {
             return Ok(false);
         }
+
+        log::debug!("✅ Re-compute passed!");
+
+        log::debug!("🛠️ All passed, append the block to chain ...");
 
         Ok(true)
     }
@@ -345,6 +365,7 @@ fn manual_fork_validation(_parent_number: u32, algo: SupportedHashes) -> bool {
     }
 }
 
+/// TODO
 /// @dev: Currently all algorithms not work at all.
 /// So fork will not work as well.
 /// This function contains a custom logic about fork.
