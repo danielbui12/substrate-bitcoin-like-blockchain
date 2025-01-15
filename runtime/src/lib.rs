@@ -9,10 +9,10 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 pub use frame_support::{
-    construct_runtime, parameter_types,
+    construct_runtime, parameter_types, derive_impl,
     traits::{
         Currency, EstimateNextNewSession, Imbalance, IsSubType, KeyOwnerProofSystem,
-        LockIdentifier, Nothing, OnUnbalanced, ValidatorSet,
+        LockIdentifier, Nothing, OnUnbalanced, ValidatorSet, VariantCountOf,
     },
     weights::{
         constants::{
@@ -23,7 +23,7 @@ pub use frame_support::{
     Callable, StorageValue,
 };
 use frame_support::{
-    genesis_builder_helper::{build_config, create_default_config},
+    genesis_builder_helper::{build_state, get_preset},
     instances::{Instance1, Instance2, Instance3},
     sp_runtime::Perquintill,
     traits::{ConstU128, ConstU32, ConstU8},
@@ -48,6 +48,7 @@ use sp_runtime::{
         InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
     },
     ApplyExtrinsicResult, DigestItem, MultiSignature,
+    ExtrinsicInclusionMode,
 };
 pub use sp_runtime::{FixedPointNumber, Perbill, Permill};
 use sp_std::prelude::*;
@@ -154,6 +155,7 @@ parameter_types! {
     pub const SS58Prefix: u8 = 42;
 }
 
+#[derive_impl(frame_system::config_preludes::SolochainDefaultConfig)]
 impl frame_system::Config for Runtime {
     /// The basic call filter to use in dispatchable.
     type BaseCallFilter = frame_support::traits::Everything;
@@ -224,9 +226,8 @@ impl pallet_balances::Config for Runtime {
     type ExistentialDeposit = ConstU128<500>;
     type AccountStore = System;
     type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
-    type FreezeIdentifier = ();
-    type MaxFreezes = ();
-    type MaxHolds = ();
+    type FreezeIdentifier = RuntimeFreezeReason;
+    type MaxFreezes = VariantCountOf<RuntimeFreezeReason>;
     type RuntimeHoldReason = RuntimeHoldReason;
     type RuntimeFreezeReason = RuntimeFreezeReason;
 }
@@ -390,7 +391,7 @@ impl_runtime_apis! {
             Executive::execute_block(block)
         }
 
-        fn initialize_block(header: &<Block as BlockT>::Header) {
+        fn initialize_block(header: &<Block as BlockT>::Header) -> ExtrinsicInclusionMode {
             Executive::initialize_block(header)
         }
     }
@@ -535,12 +536,16 @@ impl_runtime_apis! {
     }
 
     impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
-        fn create_default_config() -> Vec<u8> {
-            create_default_config::<RuntimeGenesisConfig>()
+        fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
+            build_state::<RuntimeGenesisConfig>(config)
         }
 
-        fn build_config(config: Vec<u8>) -> sp_genesis_builder::Result {
-            build_config::<RuntimeGenesisConfig>(config)
+        fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
+            get_preset::<RuntimeGenesisConfig>(id, |_| None)
+        }
+
+        fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
+            Default::default()
         }
     }
 }
