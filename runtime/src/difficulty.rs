@@ -101,19 +101,20 @@ pub mod pallet {
 
     #[pallet::genesis_config]
     pub struct GenesisConfig<T: Config<I>, I: 'static = ()> {
-        pub _ph_data: PhantomData<(T, I)>,
-        pub initial_difficulty: Difficulty,
+        pub _ph_data: Option<PhantomData<(T, I)>>,
+        pub initial_difficulty: [u8; 32], // Difficulty = U256
     }
 
     #[pallet::genesis_build]
     impl<T: Config<I>, I: 'static> BuildGenesisConfig for GenesisConfig<T, I> {
         fn build(&self) {
+            let initial_difficulty = U256::from_little_endian(&self.initial_difficulty);
             // Initialize the Current difficulty
-            CurrentDifficulty::<T, I>::put(self.initial_difficulty);
+            CurrentDifficulty::<T, I>::put(&initial_difficulty);
 
             // Store the initial difficulty in storage because we will need it
             // during the first DIFFICULTY_ADJUSTMENT_WINDOW blocks (see todo below).
-            InitialDifficulty::<T, I>::put(self.initial_difficulty);
+            InitialDifficulty::<T, I>::put(&initial_difficulty);
         }
     }
 
@@ -121,7 +122,7 @@ pub mod pallet {
         fn default() -> Self {
             GenesisConfig {
                 _ph_data: Default::default(),
-                initial_difficulty: 4_000_000.into(),
+                initial_difficulty: [0u8; 32],
             }
         }
     }

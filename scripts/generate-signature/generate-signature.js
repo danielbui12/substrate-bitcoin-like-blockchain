@@ -31,7 +31,7 @@ async function main() {
 
     const inputs = [{
         // the latest UTXO hash of the account want to spent
-        outpoint: "0xdc25c09de55abb8ea4c3d53bd1ca5c26e0501db8cede096d8328cb482fda935a",
+        outpoint: "0xc670c5f69081da78af400552edcafa3f0f31e84db1b50dd70776e0f87477b3dc",
         // default simple sigscript
         sigscript: "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
     }]
@@ -59,8 +59,11 @@ async function main() {
     const signature = alice.sign(encodedTx);
     const isValid = alice.verify(encodedTx, signature, alice.publicKey);
     
-    // output the result
-    console.log(`${u8aToHex(signature)} is ${isValid ? 'valid' : 'invalid'}`);
+    if (isValid) {
+        console.log(`✅ Signature: ${u8aToHex(signature)}`);
+    } else {
+        console.log(`❌ Something went wrong! Please report to 👉 https://github.com/danielbui12/substrate-bitcoin-like-blockchain/issues/new`);
+    }
 }
 
 main().then(() => process.exit(0)).catch(error => {
