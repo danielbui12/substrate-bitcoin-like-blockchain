@@ -232,21 +232,21 @@ where
 
         log::debug!("✅ Checksum digest passed!");
 
-        // TODO idk why this always return md5 only
-        let algo_from_predigest = match SupportedHashes::decode(&mut &encoded_pre_digest[..]) {
-            Ok(algo) => algo,
-            Err(_) => return Ok(false),
-        };
+        // // TODO idk why this always return md5 only
+        // let algo_from_predigest = match SupportedHashes::decode(&mut &encoded_pre_digest[..]) {
+        //     Ok(algo) => algo,
+        //     Err(_) => return Ok(false),
+        // };
 
-        log::debug!("✅ Get algorithm from digest passed!");
+        // log::debug!("✅ Get algorithm from digest passed!");
 
-        // Check that the pre-digest algo matches the seal algo
-        // TODO it shouldn't be necessary to have both.
-        if seal.work.algo != algo_from_predigest {
-            return Ok(false);
-        }
+        // // Check that the pre-digest algo matches the seal algo
+        // // TODO it shouldn't be necessary to have both.
+        // if seal.work.algo != algo_from_predigest {
+        //     return Ok(false);
+        // }
 
-        log::debug!("✅ Checksum algorithm from seal passed!");
+        // log::debug!("✅ Checksum algorithm from seal passed!");
 
         // This is where we handle forks on the verification side.
         // We will still need to handle it in the mining algorithm somewhere.
@@ -360,8 +360,8 @@ fn manual_fork_validation(_parent_number: u32, algo: SupportedHashes) -> bool {
     // After the fork height this check is skipped so all the hashes become valid.
     match algo {
         Md5 => true,
-        Sha3 => false,
-        Keccak => false,
+        Sha3 => true,
+        Keccak => true,
     }
 }
 
