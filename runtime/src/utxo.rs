@@ -113,6 +113,8 @@ pub mod pallet {
 
     /// Keep track of latest UTXO hash of account
     /// Mapping from `sr25519::Pubkey` to `BlakeTwo256::hash_of(transaction, index)`
+    /// Just for testing 🫤
+    /// Because 1 account may have multiple UTXOs
     #[pallet::storage]
     #[pallet::getter(fn utxo_of)]
     pub type UtxoOf<T: Config> =

@@ -15,19 +15,40 @@ You can use a native binary if you built it in the previous section. Otherwise y
 ./target/release/academy-pow --dev --tmp --mining-algo md5
 ```
 
-## MultiNode Testnet
+## MultiNode
 
-When using the local networking, you can use the `--discover-local` flag to discover peers on your local network.
-
+- 
 ```sh
-# Start the first node.
-# Same as a single node network above.
-./target/release/academy-pow --dev --mining-algo md5
+# Start the first local blockchain node using Ferdie account,
+# using md5 algorithm 
+./target/release/academy-pow  \
+    --mining-algo md5 \
+    --base-path ./validators/ferdie \
+    --dev \
+    --ferdie \
+    --port 30333 \
+    --rpc-port 9944 \
+    --node-key 0000000000000000000000000000000000000000000000000000000000000001 \
+    --no-prometheus \
+    --validator
 
-# Start the second node
-# Choose a non-default rpc port because the default port is taken by the first node.
-./target/release/academy-pow --dev --mining-algo sha3 --rpc-port 9944 --discover-local
+# Start the second local blockchain node using Eve account,
+# using sha3 algorithm
+./target/release/academy-pow  \
+    --mining-algo sha3 \
+    --base-path ./validators/eve \
+    --dev \
+    --eve \
+    --port 30334 \
+    --rpc-port 9945 \
+    --no-prometheus \
+    --bootnodes /ip4/127.0.0.1/tcp/30333/p2p/12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp \
+    --validator
 ```
+
+Then you can see Ferdie and Eve are continuously producing blocks.
+
+![multinode](assets/multinode.png)
 
 ## More Help
 

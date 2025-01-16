@@ -1,7 +1,7 @@
 # UTXO Pallet Code Breakdown
 
 ## Table of Contents
-- [Introduction](#introduction)
+
 - [Struct Definitions](#struct-definitions)
   - [Transaction](#transaction)
   - [TransactionInput](#transactioninput)
