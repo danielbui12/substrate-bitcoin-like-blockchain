@@ -47,7 +47,30 @@ Before proceeding with this interactive tutorial, make sure you complete the ini
 ## Build your own UTXO account model
 
 Let's build your own Bitcoin-like blockchain with UTXO account model.
-...
+
+```sh
+git checkout step-1-setup
+cargo build --release
+```
+
+Then follow branches `step-*` to complete this tutorial.
+
+| Step | Status | Modules                                                                                            | Description                                                                                     |
+| ---- | ------ | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| #0   | ✅     | Prerequisites                                                                                      | Prepare your local environment to work with Substrate node and the code template. |
+| #1   | 🟡     | [step-1-setup](https://github.com/danielbui12/substrate-bitcoin-like-blockchain/tree/step-1-setup) | Clone `substrate-bitcoin-like-blockchain` and checkout branch `step-1-setup` to setup the template code on the local. |
+| #2   | 🟡     | [step-2-data-structure](https://github.com/danielbui12/substrate-bitcoin-like-blockchain/tree/step-2-data-structure) | Learn about Pallet storage and write basic data structures for UTXO account model. |
+| #3   | 🟡     | [step-3-dispersed-reward](https://github.com/danielbui12/substrate-bitcoin-like-blockchain/tree/step-3-dispersed-reward) | Learn about pallet hook and pallet lifecycle, event and write method to mutate storage. |
+| #4   | 🟡     | [step-4-genesis-builder](https://github.com/danielbui12/substrate-bitcoin-like-blockchain/tree/step-4-genesis-builder) | Learn & implement genesis config & genesis builder for pallet UTXO. |
+| #5   | 🟡     | [step-5-spend-utxo](https://github.com/danielbui12/substrate-bitcoin-like-blockchain/tree/step-5-spend-utxo) | Learn about dispatchable functions, and write an extrinsic to allow accounts to transfer their tokens. |
+| #6   | 🟡     | [step-6-runtime](https://github.com/danielbui12/substrate-bitcoin-like-blockchain/tree/step-6-runtime) | Understanding Substrate runtime & transition pool. Override validate transaction to allow UTXO transactions. |
+| #7   | 🟡     | [step-7-client-sigscript](https://github.com/danielbui12/substrate-bitcoin-like-blockchain/tree/step-7-client-sigscript) | Using polkadot.js to generate signed data for UTXO spend transaction. |
+
+
+✅ stands for `Finished` 
+
+
+🟡 stands for `In Progress`
 
 ## FAQ
 
