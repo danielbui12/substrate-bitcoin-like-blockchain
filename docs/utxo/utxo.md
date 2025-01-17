@@ -8,7 +8,6 @@ For example: if you have a **$100** bill and need to pay **$15**, you spend the 
 
 ## Concept
 
-
 Generally, in the UTXO model, a transaction consists of **inputs** and **outputs**. The **TransactionInput** references previous **UTXOs** that are being spent, and the **TransactionOutput** creates new UTXOs for the recipient and the sender’s change. 
 
 The flow can be visualized as follows:

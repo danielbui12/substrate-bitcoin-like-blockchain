@@ -9,11 +9,18 @@ First you will need a [Substrate developer environment](https://docs.substrate.i
 
 ## Run a Single Development Node
 
-You can use a native binary if you built it in the previous section. Otherwise you can use Docker.
+Use native binary to start a local blockchain node:
 
 ```sh
 ./target/release/academy-pow --dev --tmp --mining-algo md5
 ```
+
+Enable log, or tracing steps:
+
+```sh
+RUST_LOG=debug ./target/release/academy-pow --dev --tmp --mining-algo md5
+```
+
 
 ## MultiNode
 
@@ -49,6 +56,13 @@ You can use a native binary if you built it in the previous section. Otherwise y
 Then you can see Ferdie and Eve are continuously producing blocks.
 
 ![multinode](assets/multinode.png)
+
+## Purge chain
+
+```sh
+./target/release/academy-pow purge-chain --base-path ./validators/ferdie --dev
+./target/release/academy-pow purge-chain --base-path ./validators/eve --dev
+```
 
 ## More Help
 

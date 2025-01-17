@@ -1,6 +1,14 @@
 # FAQ
 
-### How do I get `sigscript` ?
+### Why does this use MD5, SHA3, Keccak256?
+
+Basically they're more simple & faster than SHA256, good to demonstrates legacy hashing mechanisms. However, MD5 is insecure due to vulnerabilities like collision attacks, making it unsuitable for real-world blockchain applications.
+
+
+If you get this well, you can add SHA256 to your own Proof-of-Work
+
+
+### How do I get `sigscript`?
 
 Sigscript is signed data from _Alice_. Look at `runtime/src/utxo.rs:346` and `scripts/generate-signature/generate-signature.js:14` to explore how it works.
 

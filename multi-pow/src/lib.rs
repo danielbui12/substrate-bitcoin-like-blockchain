@@ -300,13 +300,13 @@ where
 
         log::debug!("✅ Re-compute passed!");
 
-        log::debug!("🛠️ All passed, append the block to chain ...");
+        log::debug!("🛠️ All passed, append the block to the chain ...");
 
         Ok(true)
     }
 }
 
-#[derive(Copy, Clone, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 ///
 pub struct ForkHeights {
     /// The block height to perform the soft fork that adds sha3 and keccak support.
@@ -353,10 +353,12 @@ impl FromStr for MaxiPosition {
     }
 }
 
+/// Manual mode, the node operator manually specifies which hashing algorithms are valid through the mining client.
+/// If you would like to do a fork, simply allow, un-allow some algorithms to check it.
 fn manual_fork_validation(_parent_number: u32, algo: SupportedHashes) -> bool {
     use SupportedHashes::*;
 
-    // To begin with we only allow md5 hashes for our pow.
+    // To begin with, allow all algorithms.
     // After the fork height this check is skipped so all the hashes become valid.
     match algo {
         Md5 => true,
@@ -365,11 +367,11 @@ fn manual_fork_validation(_parent_number: u32, algo: SupportedHashes) -> bool {
     }
 }
 
-/// TODO
-/// @dev: Currently all algorithms not work at all.
-/// So fork will not work as well.
-/// This function contains a custom logic about fork.
-/// Hence we cannot use it for now.
+/// In automatic mode, the `ForkHeights` and `MaxiPosition` structs define the forking schedule
+/// and the node's behavior during the contentious fork
+/// (where the network splits into two chains supporting different hashing algorithms).
+/// The validation logic considers the parent block height,
+/// forking configuration parameters, and the hashing algorithm used in the PoW solution to determine its validity.
 fn auto_fork_validation(
     parent_number: u32,
     algo: SupportedHashes,
@@ -378,6 +380,9 @@ fn auto_fork_validation(
 ) -> bool {
     use MaxiPosition::*;
     use SupportedHashes::*;
+
+    log::debug!("parent_number: {:?}", parent_number);
+    log::debug!("fork_heights: {:?}", fork_heights);
 
     if parent_number < fork_heights.add_sha3_keccak {
         // To begin with we only allow md5 hashes for our pow.

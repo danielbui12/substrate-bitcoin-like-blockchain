@@ -36,12 +36,35 @@ F --> G[Nodes Validate Block]
 G --> H[Block Added to Blockchain]
 ```
 
-### Details of the Process
+In essence, the process involves:
 
-1. **Transaction Pool**: Transactions are collected into a pool awaiting validation.
-2. **Cryptographic Puzzle**: Miners solve a complex mathematical problem based on the block's content.
-3. **Validation**: Once solved, the solution is broadcast to the network for verification.
-4. **Block Addition**: Upon consensus, the block is added to the chain, and the miner is rewarded.
+1. **Transaction Collection**: New transactions are added to a pool awaiting inclusion in the blockchain.
+2. **Puzzle Solving**: Miners compete to find a solution to a cryptographic puzzle. This typically involves finding a "nonce" – a random number – that, when combined with the previous block's hash and the current block's data, produces a hash value that meets specific criteria.
+3. **Hashing**: Miners use a cryptographic hash function (like SHA-256) to hash the combination of the nonce, previous block hash, and current block data.
+4. **Solution** Verification: The first miner to find a solution broadcasts the new block to the network.
+5. **Network Validation**: Other nodes on the network verify the block's validity and its inclusion in the blockchain.
+6. **Block Addition**: If the block is valid, it is added to the blockchain, and the successful miner receives a reward.
+
+
+In Bitcoin use case, miners have to compete to guess the `Nonce` number as soon as possible.
+With `Previous block hash`, `Current block data` put into SHA256 to get the hash of current block, then submit to the blockchain.
+After that, other miners will participate in block validation.
+
+```mermaid
+graph TD;
+    subgraph Input
+        pbh["Previous block hash"]
+        cbd["Current block data"]
+        nonce["Nonce"]
+    end
+    SHA256
+    result["000000......24179"]
+
+    pbh-->SHA256
+    cbd-->SHA256
+    nonce-->SHA256
+    SHA256 --> result
+```
 
 ### 51% Attack
 
@@ -66,13 +89,6 @@ See a more detail explanation about this on [Cryptography exchange](https://cryp
 
 While PoW relies on computational power, Proof-of-Stake (PoS) selects validators based on their stake in the network. Here’s a comparison:
 
-```mermaid
-pie
-    title Energy Consumption
-    "PoW": 90
-    "PoS": 10
-```
-
 ### Key Differences
 
 | Feature                 | Proof-of-Work (PoW)          | Proof-of-Stake (PoS)            |
@@ -82,9 +98,6 @@ pie
 | **Security**            | Robust, resistant to attacks | Dependent on stake distribution |
 | **Scalability**         | Limited                      | High                            |
 
-### Strengths and Weaknesses
+## Where to go next?
 
-- **PoW Strengths**: Proven security, high decentralization.
-- **PoW Weaknesses**: Energy-intensive, slower transaction processing.
-- **PoS Strengths**: Energy-efficient, faster consensus.
-- **PoS Weaknesses**: Risk of centralization due to wealth concentration.
+This is just a brief about Proof-of-Work. If you want to learn more about Proof of Work and Bitcoin, please find and read Mastering Bitcoin book. That explains what Bitcoin is and how it works including Proof-of-Work. (Or [free version of community](https://github.com/bitcoinbook/bitcoinbook))

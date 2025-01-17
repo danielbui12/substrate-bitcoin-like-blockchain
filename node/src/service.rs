@@ -234,8 +234,8 @@ pub fn new_full<
                 Some(PreDigest::from((sr25519_public_key.into(), mining_algo)).encode()),
                 // This code is copied from above. Would be better to not repeat it.
                 move |_, ()| async move {
-                    let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
-
+                    let timestamp = sp_timestamp::InherentDataProvider::from_system_time();            
+                    // set default `author` following miner specified in CLI
                     let author = academy_pow_runtime::block_author::InherentDataProvider(
                         sr25519_public_key.encode(),
                     );

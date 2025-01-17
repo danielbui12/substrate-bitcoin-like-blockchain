@@ -96,9 +96,9 @@ pub fn development_config() -> Result<ChainSpec, String> {
     Ok(ChainSpec::builder(
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
         ForkingExtensions {
-            manual_mode: 1, // or change this to 0
+            manual_mode: 0, // change this to `1` if you want to try `auto_fork_validation`
             add_sha3_keccak: 10,
-            remove_md5: 20, // then increase this
+            remove_md5: 20,
             split_sha3_keccak: 30,
             maxi_position: String::from("follow-mining"),
         },
