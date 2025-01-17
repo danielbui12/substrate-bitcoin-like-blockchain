@@ -47,7 +47,11 @@ Before proceeding with this interactive tutorial, make sure you complete the ini
 ## Build your own UTXO account model
 
 Let's build your own Bitcoin-like blockchain with UTXO account model.
-...
+
+```sh
+git checkout start_here
+cargo build --release
+```
 
 ## FAQ
 

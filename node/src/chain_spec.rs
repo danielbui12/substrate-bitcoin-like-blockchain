@@ -7,7 +7,6 @@ use academy_pow_runtime::{
     TOKEN_DECIMALS,
     TOKEN_SYMBOL,
     WASM_BINARY,
-    utxo::{GenesisUtxoType, Value},
 };
 use multi_pow::{ForkHeights, ForkingConfig, MaxiPosition};
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
@@ -116,13 +115,6 @@ pub fn development_config() -> Result<ChainSpec, String> {
         ],
         // Initial Difficulty
         4_000_000,
-        // Pre-funded accounts
-        vec![
-            get_account_id_from_seed::<sr25519::Public>("Alice"),
-            get_account_id_from_seed::<sr25519::Public>("Bob"),
-            get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
-            get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
-        ],
     ))
     .with_properties(system_properties())
     .build())
@@ -150,12 +142,6 @@ pub fn testnet_config() -> Result<ChainSpec, String> {
             get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
         ],
         4_000_000,
-        vec![
-            get_account_id_from_seed::<sr25519::Public>("Alice"),
-            get_account_id_from_seed::<sr25519::Public>("Bob"),
-            get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
-            get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
-        ],
     ))
     .with_properties(system_properties())
     .build())
@@ -164,7 +150,6 @@ pub fn testnet_config() -> Result<ChainSpec, String> {
 fn genesis(
     endowed_accounts: Vec<AccountId>,
     initial_difficulty: u32,
-    utxo_genesis_accounts: Vec<AccountId>,
 ) -> serde_json::Value {
     serde_json::json!({
         "balances": {
@@ -179,17 +164,6 @@ fn genesis(
         },
         "sha3DifficultyAdjustment": {
             "initialDifficulty": u32_to_u8_32(initial_difficulty),
-        },
-        "utxo": {
-            "genesisUtxos": utxo_genesis_accounts
-                .iter().cloned()
-                .map(|k| {
-                    let hash = H256::from_slice(&k.as_slice()); 
-                    let value: Value = (1u64 << 50).into();
-                    let genesis_utxo: GenesisUtxoType = (value, hash);
-
-                    genesis_utxo
-                }).collect::<Vec<GenesisUtxoType>>(),
         },
     })
 }
