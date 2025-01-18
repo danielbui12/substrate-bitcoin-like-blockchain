@@ -4,113 +4,81 @@
 ## Step 2: Data structure
 ## Step 3: Spend UTXO
 ## Step 4: Dispersed Reward
+## Step 5: Runtime
 
 > [!Note]
-> Resolve all TODO in `runtime/src/utxo.rs` to complete this step.
+> Resolve all TODO in `runtime/src/lib.rs` to complete this step.
 
 ### Reading Materials
 
-> The block reward is a combination of the block subsidy and all transaction fees paid by transactions in a specific block. When miners mine a block, they receive a block subsidy in the form of newly minted bitcoin. All transactions also include a fee, which miners collect. The block reward is the sum of these two amounts. As block subsidies are cut in half every four years, fees will slowly become a greater portion of the block reward. The term block reward and block subsidy are occasionally used interchangeably. 
-> 
->
-> The block reward is paid out in the blockchain transaction of each block. This special transaction is the first transaction in every block, and it has no inputs.
+- [Polkadot Academy Book - Substrate's Transaction Pool](https://polkadot-blockchain-academy.github.io/pba-book/substrate/txpool-api/page.html)
+- [Polkadot Academy Book - `construct_runtime!`](https://polkadot-blockchain-academy.github.io/pba-book/frame/construct-runtime/page.html)
 
-So the problem in this step is that we've to distribute the block reward to the miners who successfully solve the puzzle to mine new blocks.
-
-Before go to this tutorial, please read these documents to understand transaction lifecycle in Substrate:
-
-- [Polkadot Blockchain Academy - Hook lecture](https://polkadot-blockchain-academy.github.io/pba-book/frame/hooks/page.html)
-
-- Recap: Onchain/STF Hooks:
-
-```mermaid
-graph LR
-    subgraph AfterTransactions
-    direction LR
-        OnIdle --> OnFinalize
-    end
-
-    subgraph OnChain
-    direction LR
-        Optional --> BeforeExtrinsics
-        BeforeExtrinsics --> Inherents
-        Inherents --> Poll
-        Poll --> Transactions
-        Transactions --> AfterTransactions
-    end
-
-    subgraph Optional
-        OnRuntimeUpgrade
-    end
-
-
-    subgraph BeforeExtrinsics
-        OnInitialize
-    end
-
-    subgraph Transactions
-        Transaction1 --> UnsignedTransaction2 --> Transaction3
-    end
-
-    subgraph Inherents
-        Inherent1 --> Inherent2
-    end
-```
 
 ### Implement
 
-To disperse block reward to block author, we'll use `on_finalize` hook. 
-
-
-To implement the Hooks trait provides logic that is executed at the end of each block. 
-- Start with `#[pallet::hooks]` macro. 
-- Implements the `Hooks` trait for the pallet. This trait is generic over the `BlockNumberFor<T>`, which represents the type of block number defined in the runtime configuration.
-- `fn on_finalize(_n: BlockNumberFor<T>)`: This function is triggered automatically at the end of each block.
+From the first step of building environment, I've already import pallet into the runtime for ya
 
 ```rust
-#[pallet::hooks]
-impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-    fn on_finalize(_n: BlockNumberFor<T>) {
-        match T::BlockAuthor::block_author() {
-            // Block author did not provide key to claim reward
-            None => Self::deposit_event(Event::RewardWasted),
-            // Block author did provide key, so issue thir reward
-            Some(author) => Self::disperse_reward(&author),
-        }
-    }
-}
+/// UTXOs serve as the digital equivalent of change you receive after making a cash purchase
+pub mod utxo;
 ```
 
----
+Now, you just have to add the pallet UTXO to the runtime
 
-Implement logic of function `disperse_reward`
+```diff
++ impl utxo::Config for Runtime {
++    type RuntimeEvent = RuntimeEvent;
++    type BlockAuthor = BlockAuthor;
++    type Issuance = issuance::BitcoinHalving;
++ }
 
-```rust
-/// Redistribute combined reward value to block Author
-fn disperse_reward(author: &Public) {
-    // take the cumulative reward in storage
-    // plus issuance of blocknumber
-    let reward = TotalReward::<T>::take()
-        + T::Issuance::issuance(frame_system::Pallet::<T>::block_number());
+... 
 
-    // create new UTXO
-    let utxo = TransactionOutput {
-        value: reward,
-        pubkey: H256::from_slice(author.as_slice()),
-    };
+construct_runtime!(
+    pub struct Runtime {
+        System: frame_system,
+        Timestamp: pallet_timestamp,
+        Balances: pallet_balances,
+        TransactionPayment: pallet_transaction_payment,
+        Md5DifficultyAdjustment: difficulty::<Instance1>,
+        Sha3DifficultyAdjustment: difficulty::<Instance2>,
+        KeccakDifficultyAdjustment: difficulty::<Instance3>,
+        BlockAuthor: block_author,
++        Utxo: utxo,
+    }
+);
 
-    // hash UTXO to get the key
-    let hash = BlakeTwo256::hash_of(&(
-        &utxo,
-        frame_system::Pallet::<T>::block_number().saturated_into::<u64>(),
-    ));
+...
 
-    // mutate storage
-    Self::store_utxo(&utxo, hash);
-    
-    // emit event `RewardDistributed`
-    Self::deposit_event(Event::RewardDistributed(reward, hash));
+
+
+impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime {
+    fn validate_transaction(
+        source: TransactionSource,
+        tx: <Block as BlockT>::Extrinsic,
+        block_hash: <Block as BlockT>::Hash,
+    ) -> TransactionValidity {
++        // Extrinsics representing UTXO transaction need some special handling
++        if let Some(&utxo::Call::spend{ ref transaction }) = IsSubType::<<Utxo as Callable<Runtime>>::RuntimeCall>::is_sub_type(&tx.function)
++        {
++            match Utxo::validate_transaction(&transaction) {
++                // Transaction verification failed
++                Err(e) => {
++                    sp_runtime::print(e);
++                    return Err(TransactionValidityError::Invalid(InvalidTransaction::Custom(1)));
++                }
++                // Race condition, or Transaction is good to go
++                Ok(tv) => { return Ok(tv); }
++            }
++        }
+
+        // Fall back to default logic for non UTXO-spending extrinsics
+        Executive::validate_transaction(source, tx, block_hash)
+    }
 }
+
+
 ```
 
 --- 
@@ -119,12 +87,18 @@ Build the code
 
 ```sh
 cargo build --release
+# start temporary local node in development environment
+./target/release/academy-pow --dev --tmp
 ```
+
+Direct to [https://polkadot.js.org/apps/?rpc=ws%3A%2F%2F127.0.0.1%3A9944#/explorer](https://polkadot.js.org/apps/?rpc=ws%3A%2F%2F127.0.0.1%3A9944#/explorer), and see block production. If you see after every a new block, there's also an event `RewardDistributed`, your work are perfect!
+
+![result](docs/assets/explorer_pow_reward.png)
 
 --- 
 
-Fantastic job completing step 4! 🌟 You're almost there. Let's move forward to step 5. Run the following command to continue:  
+Well done on completing step 5! 🎉 You're on fire! Now, let's tackle step 6. Run this command to move ahead:  
 
 ```sh
-git checkout step-5-genesis-builder
+git checkout step-6-genesis-builder	
 ```

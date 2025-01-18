@@ -154,18 +154,18 @@ pub mod pallet {
         InvalidSignature,
     }
 
-    /// TODO [4-dispersed-reward]
-    // #[pallet::hooks]
-    // impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-    //     fn on_finalize(_n: BlockNumberFor<T>) {
-    //         match T::BlockAuthor::block_author() {
-    //             // Block author did not provide key to claim reward
-    //             None => Self::deposit_event(Event::RewardWasted),
-    //             // Block author did provide key, so issue thir reward
-    //             Some(author) => Self::disperse_reward(&author),
-    //         }
-    //     }
-    // }
+    /// [4-dispersed-reward]
+    #[pallet::hooks]
+    impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+        fn on_finalize(_n: BlockNumberFor<T>) {
+            match T::BlockAuthor::block_author() {
+                // Block author did not provide key to claim reward
+                None => Self::deposit_event(Event::RewardWasted),
+                // Block author did provide key, so issue thir reward
+                Some(author) => Self::disperse_reward(&author),
+            }
+        }
+    }
 
 
     /// [2-data-structure]
@@ -227,28 +227,25 @@ pub mod pallet {
 
         /// Redistribute combined reward value to block Author
         fn disperse_reward(author: &Public) {
-            // TODO remove this
-            todo!();
-
-            // TODO [4-dispersed-reward]
+            // [4-dispersed-reward]
 
             // take the rest of reward
             // plus issuance reward of current block number
-            // let reward = TotalReward::<T>::take()
-            // + T::Issuance::issuance(frame_system::Pallet::<T>::block_number());
+            let reward = TotalReward::<T>::take()
+            + T::Issuance::issuance(frame_system::Pallet::<T>::block_number());
 
-            // let utxo = TransactionOutput {
-            //     value: reward,
-            //     pubkey: H256::from_slice(author.as_slice()),
-            // };
+            let utxo = TransactionOutput {
+                value: reward,
+                pubkey: H256::from_slice(author.as_slice()),
+            };
 
-            // let hash = BlakeTwo256::hash_of(&(
-            //     &utxo,
-            //     frame_system::Pallet::<T>::block_number().saturated_into::<u64>(),
-            // ));
+            let hash = BlakeTwo256::hash_of(&(
+                &utxo,
+                frame_system::Pallet::<T>::block_number().saturated_into::<u64>(),
+            ));
 
-            // Self::store_utxo(&utxo, hash);
-            // Self::deposit_event(Event::RewardDistributed(reward, hash));            
+            Self::store_utxo(&utxo, hash);
+            Self::deposit_event(Event::RewardDistributed(reward, hash));            
         }
 
         /// Mutate storage, insert / update new UTXOs
