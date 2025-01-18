@@ -61,16 +61,11 @@ Then follow branches `step-*` to complete this tutorial.
 | #1   | ✅     | [step-1-setup](https://github.com/danielbui12/substrate-bitcoin-like-blockchain/tree/step-1-setup) | Clone `substrate-bitcoin-like-blockchain` and checkout branch `step-1-setup` to setup the template code on the local. |
 | #2   | ✅     | [step-2-data-structure](https://github.com/danielbui12/substrate-bitcoin-like-blockchain/tree/step-2-data-structure) | Learn about Pallet storage and write basic data structures for UTXO account model. |
 | #3   | ✅     | [step-3-spend-utxo](https://github.com/danielbui12/substrate-bitcoin-like-blockchain/tree/step-3-spend-utxo) | Learn about dispatchable functions, and write an extrinsic to allow accounts to transfer their tokens. |
-| #4   | 🟡     | [step-4-dispersed-reward](https://github.com/danielbui12/substrate-bitcoin-like-blockchain/tree/step-4-dispersed-reward) | Learn about pallet hook and pallet lifecycle, event and write method to mutate storage. |
-| #5   | 🟡     | [step-5-runtime](https://github.com/danielbui12/substrate-bitcoin-like-blockchain/tree/step-5-runtime) | Understanding Substrate runtime & transition pool. Override validate transaction to allow UTXO transactions. |
-| #6   | 🟡     | [step-6-genesis-builder](https://github.com/danielbui12/substrate-bitcoin-like-blockchain/tree/step-6-genesis-builder) | Learn & implement genesis config & genesis builder for pallet UTXO. |
-| #7   | 🟡     | [step-7-client-sigscript](https://github.com/danielbui12/substrate-bitcoin-like-blockchain/tree/step-7-client-sigscript) | Using polkadot.js to generate signed data for UTXO spend transaction. |
+| #4   | ✅     | [step-4-dispersed-reward](https://github.com/danielbui12/substrate-bitcoin-like-blockchain/tree/step-4-dispersed-reward) | Learn about pallet hook and pallet lifecycle, event and write method to mutate storage. |
+| #5   | ✅     | [step-5-runtime](https://github.com/danielbui12/substrate-bitcoin-like-blockchain/tree/step-5-runtime) | Understanding Substrate runtime & transition pool. Override validate transaction to allow UTXO transactions. |
+| #6   | ✅     | [step-6-genesis-builder](https://github.com/danielbui12/substrate-bitcoin-like-blockchain/tree/step-6-genesis-builder) | Learn & implement genesis config & genesis builder for pallet UTXO. |
+| #7   | ✅     | [step-7-warp-up](https://github.com/danielbui12/substrate-bitcoin-like-blockchain/tree/step-7-warp-up) |  |
 
-
-✅ stands for `Finished` 
-
-
-🟡 stands for `In Progress`
 
 ## FAQ
 
