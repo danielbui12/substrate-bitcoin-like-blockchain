@@ -2,205 +2,221 @@
 
 ## Step 1: Set up environment
 ## Step 2: Data structure
+## Step 3: Spend UTXO
 
 > [!Note]
 > Resolve all TODO in `runtime/src/utxo.rs` to complete this step.
 
 ### Reading Materials
 
-I would recommend you to read these materials below first before looking at the code implmentation of the data structures. These materials below cover very well the concepts of FRAME storage in Substrate development.
+Dispatchable / Call / Extrinsic functions:
 
-- [OpenGuild Blog - Code breakdown pallet template (Vietnamese)](https://openguild.wtf/blog/polkadot/code-breakdown-pallet-template)
-- [Polkadot Blockchain Academy - FRAME Storage lecture](https://polkadot-blockchain-academy.github.io/pba-book/frame/storage/page.html)
-- [Substrate Docs - Runtime storage structure](https://docs.substrate.io/build/runtime-storage/)
-- [Polkadot Blockchain Academy - Event and Error](https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/guides/your_first_pallet/index.html#event-and-error)
+- [Polkadot Academy Book - FRAME Call](https://polkadot-blockchain-academy.github.io/pba-book/frame/calls/page.html)
 
-### Data structures to work with Storage API
-
-The FRAME Storage module simplifies access to these layered storage abstractions. You can use the FRAME storage data structures to read or write any value that can be encoded by the SCALE codec. The storage module provides the following types of storage structures:
+> [!Note]
+> Note that we'll implement UTXO pallet in `dev_mode`, it is not necessary to specify `weight` and `call_index`. However, feel free to do it if you want.
 
 
-- `StorageValue`: to store any single value, such as a u64.
-    - [Type](https://paritytech.github.io/polkadot-sdk/master/frame_support/storage/types/struct.StorageValue.html)
-    - [Trait](https://paritytech.github.io/substrate/master/frame_support/storage/trait.StorageValue.html)
-- `StorageMap`: to store a single key to value mapping, such as a specific account key to a specific balance value.
-    - [Type](https://paritytech.github.io/polkadot-sdk/master/frame_support/storage/types/struct.StorageMap.html) 
-    - [Trait](https://paritytech.github.io/substrate/master/frame_support/storage/trait.StorageMap.html)
-- `StorageDoubleMap`:
-    - [Type](https://paritytech.github.io/polkadot-sdk/master/frame_support/storage/types/struct.StorageDoubleMap.html) 
-    - [Trait](https://paritytech.github.io/substrate/master/frame_support/storage/trait.StorageDoubleMap.html) to store values in a storage map with two keys as an optimization to efficiently remove all entries that have a common first key.
-- `StorageNMap`:
-    - [Type](https://paritytech.github.io/polkadot-sdk/master/frame_support/storage/types/struct.StorageNMap.html) 
-    - [Trait](https://paritytech.github.io/substrate/master/frame_support/storage/trait.StorageNMap.html) to store values in a map with any arbitrary number of keys.
+### Implement for Pallet UTXO 
 
-
-### Struct data for UTXO
-
-Simple type for storing balance of UTXO
+Implement `spend` extrinsic. Highly recommend that keep the function simple and move all logics to intrinsics named with prefix `do_...` (or whatever prefix you want 👀).
 
 ```rust
-pub type Value = u128;
+pub fn spend(_origin: OriginFor<T>, transaction: Transaction) -> DispatchResult {
+    // validate transaction
+    let transaction_validity = Self::validate_transaction(&transaction)?;
+    ensure!(
+        transaction_validity.requires.is_empty(),
+        Error::<T>::MissingInput
+    );
+
+    // implement logic
+    Self::do_spend(&transaction, transaction_validity.priority as Value)?;
+
+    // emit event
+    Self::deposit_event(Event::<T>::TransactionSuccess(transaction));
+
+    Ok(())
+}
 ```
 
 ---
 
-Struct for representing a transaction in a UTXO-based model. The struct includes macros for serialization, deserialization, and various traits that enable efficient use in a blockchain context. Let’s break down the purpose of each macro:
+Strips a transaction of its Signature fields by replacing value with ZERO-initialized fixed hash.
+
+
+Just is for demo usage, feel free to add logic of using additional salt yourself 😉.
 
 ```rust
-#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Default, Clone, Encode, Decode, Hash, Debug, TypeInfo)]
-pub struct Transaction {
-    /// UTXOs to be used as inputs for current transaction
-    pub inputs: Vec<TransactionInput>,
-    /// UTXOs to be created as a result of current transaction dispatch
-    pub outputs: Vec<TransactionOutput>,
+fn get_simple_transaction(transaction: &Transaction) -> Vec<u8> {
+    let mut trx = transaction.clone();
+    for input in trx.inputs.iter_mut() {
+        input.sigscript = H512::zero();
+    }
+
+    trx.encode()
 }
-
-
-#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Default, Clone, Encode, Decode, Hash, Debug, TypeInfo)]
-pub struct TransactionInput {
-    /// Reference to an UTXO to be spent
-    pub outpoint: H256,
-    /// Proof that transaction owner is authorized to spend referred UTXO &
-    /// that the entire transaction is untampered
-    pub sigscript: H512,
-}
-
-
-#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Default, Clone, Encode, Decode, Hash, Debug, TypeInfo)]
-pub struct TransactionOutput {
-    /// Value associated with this output
-    pub value: Value,
-    /// Public key associated with this output. In order to spend this output
-    /// owner must provide a proof by hashing the whole `Transaction` and
-    /// signing it with a corresponding private key.
-    pub pubkey: H256,
-}
-```
-
-
-- `cfg_attr(feature = "std", derive(Serialize, Deserialize))`: This macro conditionally derives the `Serialize` and `Deserialize` traits when the `std` feature is enabled. This feature is useful for converting the `Transaction` struct to and from formats like JSON or other text-based formats. This functionality is often used in scenarios like data exchange between systems, debugging, or interacting with APIs or frontends.
-
-- `Encode`, `Decode`: These macros from the parity-scale-codec crate allow the struct to be serialized to and deserialized from the SCALE binary format, ensuring efficient storage and transmission on the blockchain. Read more [SCALE](https://github.com/paritytech/parity-scale-codec).
-
-- `TypeInfo`: Generates metadata for the struct, allowing its type information to be included in the blockchain's runtime metadata. This is valuable for interoperability with tools like Substrate frontends.
-
-
----
-
-Configure your pallet's types, events and errors
-
-```rust
-#[pallet::config]
-pub trait Config: frame_system::Config {
-    /// Because this pallet emits events, it depends on the runtime's definition of an event.
-    /// Read more: https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/reference_docs/frame_runtime_types/index.html
-    type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-
-    /// A source to determine the block author
-    /// Read more: `runtime/src/block_author.rs`
-    type BlockAuthor: BlockAuthor;
-
-    /// A source to determine the issuance portion of the block reward
-    /// Read more: `runtime/src/issuance.rs`
-    type Issuance: Issuance<BlockNumberFor<Self>, Value>;
-}
-```
-
-
----
-
-
-This storage item represents the total reward value to be redistributed among authorities during block finalization.
-
-```rust
-/// Total reward value to be redistributed among authorities.
-/// It is accumulated from transactions during block execution
-/// and then dispersed to validators on block finalization.
-#[pallet::storage]
-#[pallet::getter(fn total_reward)]
-pub type TotalReward<T: Config> = StorageValue<_, Value, ValueQuery>;
 ```
 
 ---
 
+Implement validate_transaction intrinsic with criteria:
 
-This storage item represents a mapping of UTXOs to their respective keys, allowing efficient lookup and management of UTXOs in a UTXO-based blockchain model.
+- Inputs and outputs are not empty
+- Each input is used exactly once
+- All inputs match to existing, unspent and unlocked outputs
+- Sum of input values does not overflow
+- Each output is defined exactly once and has nonzero value
+- Sum of output values does not overflow
+- Total output value must not exceed total input value
 
 ```rust
-/// All valid unspent transaction outputs are stored in this map.
-/// Initial set of UTXO is populated from the list stored in genesis.
-/// We use the identity hasher here because the cryptographic hashing is
-/// done explicitly.
-/// Mapping from `BlakeTwo256::hash_of(transaction, index)` to `TransactionOutput`
-#[pallet::storage]
-#[pallet::getter(fn utxo_store)]
-pub type UtxoStore<T: Config> = StorageMap<
-    Hasher = Identity,
-    Key = H256,
-    Value = TransactionOutput,
-    QueryKind = OptionQuery,
->;
-```
+/// Check transaction for validity, errors, & race conditions
+/// Called by both transaction pool and runtime execution
+pub fn validate_transaction(
+    transaction: &Transaction,
+) -> Result<ValidTransaction, &'static str> {
+    // Check inputs and outputs are not empty
+    ensure!(!transaction.inputs.is_empty(), Error::<T>::EmptyInput);
+    ensure!(!transaction.outputs.is_empty(), Error::<T>::EmptyOutput);
 
-### Events & Errors
+    // Check each input is used exactly once
+    {
+        let input_set: BTreeMap<_, ()> =
+            transaction.inputs.iter().map(|input| (input, ())).collect();
+        ensure!(
+            input_set.len() == transaction.inputs.len(),
+            Error::<T>::DuplicatedInput
+        );
+    }
+    {
+        let output_set: BTreeMap<_, ()> = transaction
+            .outputs
+            .iter()
+            .map(|output| (output, ()))
+            .collect();
+        ensure!(
+            output_set.len() == transaction.outputs.len(),
+            Error::<T>::DuplicatedOutput
+        );
+    }
 
-Events and errors are used to notify about specific activity. Please use this for debugging purpose only. Events and Errors should not be used as a communication method between functionalities.
-In our codebase, we will declare these errors and events. 
+    let mut total_input: Value = 0;
+    let mut total_output: Value = 0;
+    let mut output_index: u64 = 0;
+    let simple_transaction = Self::get_simple_transaction(transaction);
 
-To declare error, simply use macro `#[pallet::error]`
-```rust
-/// Errors inform users that something went wrong.
-#[pallet::error]
-pub enum Error<T> {
-    /// Missing `Transaction` Input
-    MissingInput,
-    /// Reward overflow
-    RewardOverflow,
-    /// Maximum transaction depth
-    MaximumTransactionDepth,
-    /// Empty input
-    EmptyInput,
-    /// Empty output
-    EmptyOutput,
-    /// Each input must only be used once
-    DuplicatedInput,
-    /// Each output must be defined only once
-    DuplicatedOutput,
-    /// Input value is overflow
-    InputOverflow,
-    /// Output value is overflow
-    OutputOverflow,
-    /// Output spent must lte than Input spent
-    OutputOverInput,
-    /// Zero amount spent
-    ZeroAmount,
-    /// Invalid signature
-    InvalidSignature,
+    // Variables sent to transaction pool
+    let mut missing_utxos = Vec::new();
+    let mut new_utxos = Vec::new();
+    let mut reward = 0;
+
+    for input in transaction.inputs.iter() {
+        // Check all inputs match to existing, unspent and unlocked outputs
+        if let Some(input_utxo) = UtxoStore::<T>::get(&input.outpoint) {
+            // Check provided signatures are valid
+            let is_valid_sig = sp_io::crypto::sr25519_verify(
+                &Signature::from_raw(*input.sigscript.as_fixed_bytes()),
+                &simple_transaction,
+                &Public::from_h256(input_utxo.pubkey),
+            );
+            ensure!(is_valid_sig, Error::<T>::InvalidSignature);
+            // Check sum of input values does not overflow
+            total_input = total_input
+                .checked_add(input_utxo.value)
+                .ok_or(Error::<T>::InputOverflow)?;
+        } else {
+            missing_utxos.push(input.outpoint.clone().as_fixed_bytes().to_vec());
+        }
+    }
+
+    // Check each output is defined exactly once and has nonzero value
+    for output in transaction.outputs.iter() {
+        ensure!(output.value > 0, Error::<T>::ZeroAmount);
+        let hash = BlakeTwo256::hash_of(&(&transaction.encode(), output_index));
+        output_index = output_index
+            .checked_add(1)
+            .ok_or(Error::<T>::MaximumTransactionDepth)?;
+        // Check new outputs do not collide with existing ones
+        ensure!(
+            !UtxoStore::<T>::contains_key(hash),
+            Error::<T>::DuplicatedOutput
+        );
+        // Check sum of output values does not overflow
+        total_output = total_output
+            .checked_add(output.value)
+            .ok_or(Error::<T>::OutputOverflow)?;
+        new_utxos.push(hash.as_fixed_bytes().to_vec());
+    }
+
+    // If no race condition, check the math
+    if missing_utxos.is_empty() {
+        // Check total output value must not exceed total input value
+        ensure!(total_input >= total_output, Error::<T>::OutputOverInput);
+        reward = total_input
+            .checked_sub(total_output)
+            .ok_or(Error::<T>::RewardOverflow)?;
+    }
+
+    // Returns transaction details
+    Ok(ValidTransaction {
+        requires: missing_utxos,
+        provides: new_utxos,
+        priority: reward as u64,
+        longevity: TransactionLongevity::max_value(),
+        propagate: true,
+    })
 }
 ```
 
+---
 
-To declare event, use `#[pallet::event]`. Moreover with `#[pallet::generate_deposit(pub(super) fn deposit_event)]`, it automatically generate a function `deposit_event` for emitting events.
+Implement `do_spend` intrinsic for `spend` extrinsic
+
 ```rust
-#[pallet::event]
-#[pallet::generate_deposit(pub(super) fn deposit_event)]
-pub enum Event<T: Config> {
-    /// Dispatch transaction successful
-    TransactionSuccess(Transaction),
-    /// UTXO out processed
-    TransactionOutputProcessed(H256),
-    /// Reward distributed to `BlockAuthor`
-    RewardDistributed(Value, H256),
-    /// Faucet to `To`
-    Faucet(Value, H256),
-    /// No one get reward
-    RewardWasted,
+/// Implement spend logic, update storage to reflect changes made by transaction
+/// Where each UTXO key is a hash of the entire transaction and its order in the `TransactionOutputs` vector
+fn do_spend(transaction: &Transaction, reward: Value) -> DispatchResult {
+    // Calculate new reward total. The rest of `total_input - total_output` will be used for block reward.
+    let new_total = TotalReward::<T>::get()
+        .checked_add(reward)
+        .ok_or(Error::<T>::RewardOverflow)?;
+    TotalReward::<T>::put(new_total);
+
+    // Removing spent UTXOs
+    for input in &transaction.inputs {
+        UtxoStore::<T>::remove(input.outpoint);
+    }
+
+    let mut index: u64 = 0;
+    for output in &transaction.outputs {
+        let hash = BlakeTwo256::hash_of(&(&transaction.encode(), index));
+        // validated before, this is safe
+        index = index
+            .checked_add(1)
+            .ok_or(Error::<T>::MaximumTransactionDepth)
+            .unwrap();
+        Self::store_utxo(output, hash);
+        // Optional, this event I used for log 
+        Self::deposit_event(Event::TransactionOutputProcessed(hash));
+    }
+
+    Ok(())
 }
 ```
 
+---
+
+Implement `store_utxo` for storage mutation
+
+```rust
+ fn store_utxo(utxo: &TransactionOutput, hash: H256) {
+    // TODO [3-spend-utxo]
+    UtxoStore::<T>::insert(hash, utxo);
+    
+    // further update 😉
+}
+```
 
 --- 
 
@@ -212,8 +228,8 @@ cargo build --release
 
 --- 
 
-Great job completing step 2! 🎉 You're making fantastic progress. Let's keep the momentum going and dive into step 3. Run the following command to continue:  
+Awesome work completing step 3! 🚀 You're doing great. Now, let's advance to step 4. Just run this command to proceed:  
 
 ```sh
-git checkout step-3-dispersed-reward
+git checkout step-4-dispersed-reward
 ```
