@@ -38,13 +38,13 @@ async function main() {
     const outputs = [
         {
             // Value to spend
-            value: "50",
+            value: "842624",
             // Bob pubkey
             pubkey: "0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48",
         },
         {
             // Value to spend
-            value: "50",
+            value: "1125899906000000",
             // Alice pubkey
             pubkey: "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d",
         },
