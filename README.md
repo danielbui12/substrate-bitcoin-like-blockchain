@@ -69,4 +69,4 @@ Then follow branches `step-*` to complete this tutorial.
 
 ## FAQ
 
-- Read the [FAQ](docs/faq.md)
+- Read the [Frequently Asked Questions - FAQ](docs/faq.md)
