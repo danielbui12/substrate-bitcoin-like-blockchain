@@ -12,7 +12,7 @@ Now, let's deep dive into Substrate Proof-of-Work!
 Firstly, you need to create **hashing algorithm**. In this repository, it use multiple hashing algorithms `MD5`, `SHA3`, `Keccak`, see [multi-pow](multi-pow/src/lib.rs).
 
 
-> [Why does this use MD5, SHA3, Keccak256?](faq.md#TODO)
+> [Why does this use MD5, SHA3, Keccak256?](../faq.md#why-does-this-use-md5-sha3-keccak256)
 
 **Components:**
 
@@ -316,6 +316,131 @@ Cribbed from https://github.com/Bitcoin-ABC/bitcoin-abc/blob/9c7b12e6f128a59423f
 ### Pallet `utxo`
 
 Head over to [utxo for more 😉](docs/utxo).
+
+### Construct runtime
+
+#### Adding pallets to the `construct_runtime!`.
+
+Each PoW hashing algorithm is 1 pallet. Because in pallet `difficulty` I've defined it as generic pallet, so now just basically implement it with generic types.
+
+```diff
+construct_runtime!(
+    pub struct Runtime {
+        System: frame_system,
+        Timestamp: pallet_timestamp,
+        Balances: pallet_balances,
+        TransactionPayment: pallet_transaction_payment,
++        Md5DifficultyAdjustment: difficulty::<Instance1>,
++        Sha3DifficultyAdjustment: difficulty::<Instance2>,
++        KeccakDifficultyAdjustment: difficulty::<Instance3>,
++        BlockAuthor: block_author,
++        Utxo: utxo,
+    }
+);
+```
+
+
+#### Implement `difficulty` config for runtime
+
+> What is `Instance1`, `Instance2`, `Instance3`?
+
+[Head over to Polkadot SDK doc - Module `frame_support::instances`](https://paritytech.github.io/polkadot-sdk/master/frame_support/instances/index.html).
+
+`frame-support` provides some instance placeholder to be used in `frame_support::pallet` attribute macro.
+
+```rust
+...
+
+parameter_types! {
+    pub const TargetBlockTime: u128 = 5_000;
+    // Setting min difficulty to damp factor per recommendation
+    pub const DampFactor: u128 = 3;
+    pub const ClampFactor: u128 = 2;
+    pub const MaxDifficulty: u128 = u128::max_value();
+}
+
+// Helper function to get the current blocks PoW algo from the predigest
+fn current_blocks_mining_algo() -> SupportedHashes {
+    System::digest()
+        .logs
+        .iter()
+        .find_map(|digest_item| match digest_item {
+            DigestItem::PreRuntime(POW_ENGINE_ID, pre_digest) => {
+                PreDigest::decode(&mut &pre_digest[..]).map(|d| d.1).ok()
+            }
+            _ => None,
+        })
+        .expect("There should be exactly one pow pre-digest item")
+}
+
+impl difficulty::Config<Instance1> for Runtime {
+    type TimeProvider = Timestamp;
+    type TargetBlockTime = TargetBlockTime;
+    type DampFactor = DampFactor;
+    type ClampFactor = ClampFactor;
+    type MaxDifficulty = MaxDifficulty;
+    type MinDifficulty = DampFactor;
+
+    fn relevant_to_this_instance() -> bool {
+        current_blocks_mining_algo() == SupportedHashes::Md5
+    }
+}
+
+impl difficulty::Config<Instance2> for Runtime {
+    type TimeProvider = Timestamp;
+    type TargetBlockTime = TargetBlockTime;
+    type DampFactor = DampFactor;
+    type ClampFactor = ClampFactor;
+    type MaxDifficulty = MaxDifficulty;
+    type MinDifficulty = DampFactor;
+
+    fn relevant_to_this_instance() -> bool {
+        current_blocks_mining_algo() == SupportedHashes::Sha3
+    }
+}
+
+impl difficulty::Config<Instance3> for Runtime {
+    type TimeProvider = Timestamp;
+    type TargetBlockTime = TargetBlockTime;
+    type DampFactor = DampFactor;
+    type ClampFactor = ClampFactor;
+    type MaxDifficulty = MaxDifficulty;
+    type MinDifficulty = DampFactor;
+
+    fn relevant_to_this_instance() -> bool {
+        current_blocks_mining_algo() == SupportedHashes::Keccak
+    }
+}
+```
+
+
+#### Implement `block_author` config for runtime.
+
+Because the logic disperse block reward I've implemented on pallet utxo already, so this is not necessary. I just keep this for further building.
+
+Feel free to change it to whatever you want like disperse block reward of utxo here instead of using hook, ...
+
+```diff
+impl block_author::Config for Runtime {
+    // Each block mined issues 50 new tokens to the miner
+    fn on_author_set(author_account: Self::AccountId) {
+-        let issuance = 50 * TOKEN;
+-        let _ = Balances::deposit_creating(&author_account, issuance);
+    }
+}
+```
+
+#### Implement `utxo` config for runtime.
+
+```rust
+impl utxo::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    // BlockAuthor pallet
+    type BlockAuthor = BlockAuthor;
+    // Bitcoin halving rule
+    type Issuance = issuance::BitcoinHalving;
+}
+```
 
 ## Applying to the node
 
