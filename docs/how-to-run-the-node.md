@@ -24,7 +24,6 @@ RUST_LOG=debug ./target/release/academy-pow --dev --tmp --mining-algo md5
 
 ## MultiNode
 
-- 
 ```sh
 # Start the first local blockchain node using Ferdie account,
 # using md5 algorithm 
@@ -55,7 +54,8 @@ RUST_LOG=debug ./target/release/academy-pow --dev --tmp --mining-algo md5
 
 Then you can see Ferdie and Eve are continuously producing blocks.
 
-![multinode](assets/multinode.png)
+![multinode-1](assets/multinode-1.png)
+![multinode-2](assets/multinode-2.png)
 
 ## Purge chain
 

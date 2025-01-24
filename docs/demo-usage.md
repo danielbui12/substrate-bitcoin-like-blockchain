@@ -11,63 +11,63 @@
 
 ## Scenario
 
-1. Initially, Alice has UTXO $100.
-2. She transfers to BOB an UTXO $50, but she doesn't have an UTXO $50. So she has to use her $100.
-3. `TransactionInput` contains `outpoint` is UTXO $100, `sigscript` is signed data of "simple transaction" (refer to `runtime/src/utxo.rs:354`).
+1. Initially, Alice has a UTXO 1,125,899,906,842,624.
+2. She transfers to BOB a UTXO 842,624; but she doesn't have a UTXO $842,624. So she has to use her 1,125,899,906,842,624.
+3. `TransactionInput` contains `outpoint` is UTXO 1,125,899,906,842,624; `sigscript` is signed data of "simple transaction" (refer to `runtime/src/utxo.rs:354`).
 5. There will be 2 `TransactionOutput`s:
-    - `TransactionOutput` contains `value` is UTXO $50, `pubkey` is Bob address
-    - `TransactionOutput` contains `value` is UTXO $50, `pubkey` is Alice address
+    - `TransactionOutput` contains `value` is UTXO 842,624; `pubkey` is Bob address
+    - `TransactionOutput` contains `value` is UTXO 1,125,899,906,000,000; `pubkey` is Alice address
 
 ```mermaid
 flowchart LR
-    AliceBefore[Alice <br/> UTXO $100] --> T{Transaction}
-    T -->|Change| AliceAfter[Alice <br/> UTXO $50]
-    T -->|Receive| Bob[Bob <br/> UTXO $50]
+    AliceBefore[Alice <br/> UTXO 1,125,899,906,842,624] --> T{Transaction}
+    T -->|Change| AliceAfter[Alice <br/> UTXO 842,624]
+    T -->|Receive| Bob[Bob <br/> UTXO 1,125,899,906,000,000]
 ```
 
 ## Steps
 
 - Navigate to: https://polkadot.js.org/apps/?rpc=ws%3A%2F%2F127.0.0.1%3A9944#/extrinsics
 
-### 1. Alice faucets UTXO 100
-
-- Select `utxo`, `faucet`
-
-**Input**
-- `to`: 0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d 
-- `amount`: 100
-
-Then submit signed transaction
-
-![1_input](assets/1_input.png)
-
-**Event**
-
-- `hash`: 0xdc25c09de55abb8ea4c3d53bd1ca5c26e0501db8cede096d8328cb482fda935a
-
-![1_event](assets/1_event.png)
-
-
 **Check balance**
 
-- Switch to [_Chain State_](https://polkadot.js.org/apps/?rpc=ws%3A%2F%2F127.0.0.1%3A9944#/chainstate), select `utxo`, `utxoStore`
-- Input: `0xdc25c09de55abb8ea4c3d53bd1ca5c26e0501db8cede096d8328cb482fda935a`
+
+- Switch to [_Chain State_](https://polkadot.js.org/apps/?rpc=ws%3A%2F%2F127.0.0.1%3A9944#/chainstate), select `utxo`, `utxoOf`
+- Input: `0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d`
 - Press **+** button
-- Verify Alice has UTXO 100
+- Verify Alice has a UTXO hash
+```
+utxo.utxoOf: Option<H256>
+0xc670c5f69081da78af400552edcafa3f0f31e84db1b50dd70776e0f87477b3dc
+```
+
+
+- Then select `utxo`, `utxoStore`
+- Input: `0xc670c5f69081da78af400552edcafa3f0f31e84db1b50dd70776e0f87477b3dc`
+- Press **+** button
+- Verify Alice has a UTXO value
+```
+utxo.utxoStore: Option<AcademyPowRuntimeUtxoTransactionOutput>
+{
+  value: 1,125,899,906,842,624
+  pubkey: 0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d
+}
+```
 
 ![1_check_balance](assets/1_check_balance.png)
 
 
-### 2. Alice transfers UTXO 50 to Bob, get back UXTO 50
+**Alice transfers UTXO 842,624 to Bob, get back UXTO 1,125,899,906,000,000**
+
 
 **Input**
 
-- `inputs[0].outpoint`: 0xdc25c09de55abb8ea4c3d53bd1ca5c26e0501db8cede096d8328cb482fda935a
-- `inputs[0].sigscript`: 0xa477ed0c2b6014f83259ad2adca605ca2d47fa1fc694f30d87e6fb06482df72c2473bec6627c49904d31ede63c1c4d8d059a94ebb41cd881e3bf98dcc1797084
+- `inputs[0].outpoint`: 0xc670c5f69081da78af400552edcafa3f0f31e84db1b50dd70776e0f87477b3dc
+- `inputs[0].sigscript`: 0xa23674686467cf6a3d755987276e1dbb71b4800ff99f2721e7d4fd52774fe43086ed5a385b5cde80a346be5eb7afd3e95ef1dd9b9069deee889cd432891ba481
 
-- `outputs[0].value`: 50
+- `outputs[0].value`: 842624
 - `outputs[0].pubkey`: 0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48
-- `outputs[1].value`: 50
+- `outputs[1].value`: 1125899906000000
 - `outputs[1].pubkey`: 0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d
 
 
@@ -78,8 +78,8 @@ Then submit unsigned transaction
 
 **Events**
 
-- hash of Bob: 0xe292131bbf25a3131045f26c2b750e6e7d26fc56a473aaf19e3a60d15ca3a82f
-- hash of Alice: 0x7108d560f7d0079c8fe711f0ff5d316438cd376911e176b8bab62327e5ff8f0a
+- New UTXO hash of Bob: 0x60bfe689ea5d2f0e2380a146289067465a3608b9ef20ef9e152cf501c0040dba
+- New UTXO hash of Alice: 0x426e4f172479a674b4c044c34a77453bdf4ddbdf8b3993d586a05d9cffe57bd3
 
 ![2_event](assets/2_event.png)
 
@@ -89,26 +89,17 @@ Then submit unsigned transaction
 - Switch to [_Chain State_](https://polkadot.js.org/apps/?rpc=ws%3A%2F%2F127.0.0.1%3A9944#/chainstate), select `utxo`, `utxoStore`
 
 Alice: 
-- Input: `0x7108d560f7d0079c8fe711f0ff5d316438cd376911e176b8bab62327e5ff8f0a`
+- Input: `0x426e4f172479a674b4c044c34a77453bdf4ddbdf8b3993d586a05d9cffe57bd3`
 - Press **+** button
-- Verify Alice has an UTXO $50
+- Verify Alice has a UTXO 1,125,899,906,000,000
 
 Bob:
-- Input: `0xe292131bbf25a3131045f26c2b750e6e7d26fc56a473aaf19e3a60d15ca3a82f`
+- Input: `0x60bfe689ea5d2f0e2380a146289067465a3608b9ef20ef9e152cf501c0040dba`
 - Press **+** button
-- Verify Bob has an UTXO $50
+- Verify Bob has a UTXO 842,624
 
 
 ![2_check_balance](assets/2_check_balance.png)
-
-## 3. Another way to check the Account balance
-
-- Head over to [_Chain State_](https://polkadot.js.org/apps/?rpc=ws%3A%2F%2F127.0.0.1%3A9944#/chainstate), select `utxo`, `utxoOf`
-- Input sr25519::Pubkey of Alice or Bob, refer to [this](#Address)
-- Then you'll get the latest UTXO hash of them, now you can easily keep track the balance of accounts.
-
-![3_another_way_to_check_balance](assets/3_another_method_to_check_balance.png)
-
 
 ### Custom your own
 
