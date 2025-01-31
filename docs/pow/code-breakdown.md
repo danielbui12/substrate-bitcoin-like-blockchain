@@ -286,7 +286,7 @@ where
 
 This pallet allows block authors to self-identify by providing an sr25519 public key.
 
-By default, the block author is set by miner following CLI. See more in `node/src/service.rs:239`
+By default, the block author is set by miner following CLI by [Inherent Transaction](https://wiki.polkadot.network/docs/learn-transactions#types-of-extrinsics). See more in `node/src/service.rs:239`
 
 
 ### Pallet `difficulty`
