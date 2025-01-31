@@ -11,7 +11,11 @@ However, during implement Bitcoin-like blockchain, I've to update and fix a lot 
 Significantly, I've bumped Polkadot-SDK to stable-2407. That's quite complected but I've made it thanks to comprehensive document of OpenGuild's Polkadot SDK course.
 - [Bump Polkadot SDK versions lesson doc.](https://bootcamp.openguild.wtf/building-a-blockchain-with-polkadot-sdk/polkadot-sdk/substrate/bump-polkadot-sdk-versions)
 - [Bump Polkadot SDK versions lesson video.](https://www.youtube.com/watch?v=6nhIZmE1Nck&list=PLnhzaKpksqOKiqu9DDjGnmZWB0hYTaOUC&index=15)
-- My commits: [be5c66](https://github.com/danielbui12/substrate-bitcoin-like-blockchain/commit/be5c665779dc23e2ac2c710ce5ada95975b4d5d2)
+- My commit: [be5c66](https://github.com/danielbui12/substrate-bitcoin-like-blockchain/commit/be5c665779dc23e2ac2c710ce5ada95975b4d5d2)
+
+## Substrate UTXO Workshop
+
+This version builds upon the work of giants from [Building a UTXO Chain from Scratch | Substrate Seminar](https://www.youtube.com/watch?v=XuJmxMMHvDw), with even more inspiration (I believe! 😃).
 
 ## Proof of Work
 
@@ -34,6 +38,38 @@ Before proceeding with this interactive tutorial, make sure you complete the ini
 - [Polkadot SDK doc](https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/polkadot_sdk/index.html)
 - [Substrate simulate a network](https://docs.substrate.io/tutorials/build-a-blockchain/simulate-network/)
 
+Overview of Bitcoin-like Blockchain in Substrate
+
+```mermaid
+graph TD;
+    subgraph UTXO_Runtime
+        Timestamp -->|Time trait| Difficulty
+        Block_Author -->|BlockAuthor| UTXO
+        Bitcoin_Halving --> |Issuance| UTXO
+        FRAME_System
+
+        subgraph Difficulty
+            Sha3_Difficulty
+            Keccak_Difficulty
+            Md5_Difficulty
+        end
+    end
+
+    subgraph UTXO_Node
+        subgraph Multi_PoW_Consensus
+            Sha3_Algorithm
+            Keccak_Algorithm
+            Md5_Algorithm
+        end
+
+        Tx_Pool
+    end
+
+    Difficulty --> Difficulty_API{{Difficulty API}}
+    Difficulty_API --> Multi_PoW_Consensus
+    UTXO --> Tx_Pool_API{{Tx Pool API}}
+    Tx_Pool_API --> Tx_Pool
+```
 
 ## How to run the node
 
