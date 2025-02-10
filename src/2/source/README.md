@@ -1,6 +1,6 @@
 # Rust Tooling
 
-In this step, we will initialize a basic rust project, where we can start building our simple Rust state machine.
+Some useful tools for Rust development
 
 ## rustfmt
 
@@ -8,7 +8,7 @@ To keep your code clean and easy to read, we use a tool called [`rustfmt`](https
 
 To install `rustfmt` for `nightly`:
 
-```bash
+```sh
 rustup component add rustfmt --toolchain nightly
 ```
 
@@ -40,4 +40,24 @@ However, to provide the full functionality that it does, Rust Analyzer needs to 
 
 It is my personal recommendation that Rust Analyzer is not needed in this workshop, and generally you should not use it for Substrate development. However, this section might be updated in the future to include special configurations of Rust Analyzer which will work well with Polkadot SDK in the future.
 
+For better search definition, you can follow the tutorial from [Kianenigma](https://blog.kianenigma.com/posts/tech/for-those-who-don-t-want-rust-analyzer-one-regex-to-rule-them-all/). Simply use "one Regex to rule them all":
+```
+(macro_rules!|const|enum|struct|fn|trait|impl(<.*?>)?|type) <variable-name-here>
+```
+
 However, if you would like to use it anyway, now is the right time to set it up.
+
+
+## Issue after formatting code
+
+You may got errors when building your project. This is because the code formatter changes the syntax of your code. To fix this, open `lib.rs:334` and replace the following line:
+
+```diff
+-		Md5DifficultyAdjustment: difficulty<Instance1>,
+-		Sha3DifficultyAdjustment: difficulty<Instance2>,
+-		KeccakDifficultyAdjustment: difficulty<Instance3>,
++		Md5DifficultyAdjustment: difficulty::<Instance1>,
++		Sha3DifficultyAdjustment: difficulty::<Instance2>,
++		KeccakDifficultyAdjustment: difficulty::<Instance3>,
+```
+

@@ -1,23 +1,53 @@
-# Introduction to the Rust State Machine
+# Substrate Bitcoin-Like Blockchain Introduction
 
-Welcome to the Rust State Machine tutorial.
+This repository is derived from [Academy-PoW](https://github.com/Polkadot-Blockchain-Academy/Academy-PoW), originally designed as a learning resource. While implementing a Bitcoin-like blockchain, I faced several challenges that required updates and fixes to ensure smooth execution. Additionally, I transitioned the account model from an **Account-based** system to a **UTXO-based** approach. This implementation builds upon the foundational work from **[Building a UTXO Chain from Scratch | Substrate Seminar](https://www.youtube.com/watch?v=XuJmxMMHvDw)**. Inspired by this resource, I aimed to further enhance the project, incorporating my own insights and improvements.  
 
-This is a guided tutorial intended to teach readers the basics of Rust, Blockchain, and eventually the inner workings of the [Polkadot SDK](https://github.com/paritytech/polkadot-sdk).
+## Prerequisites  
 
-It has been my experience that the hardest part of building your first blockchain using the Polkadot SDK is navigating the advance Rust features used by [Substrate](https://github.com/paritytech/polkadot-sdk/tree/master/substrate), and understanding the underlying magic behind various macros which generate code for you.
+Before starting this interactive tutorial, you should have a basic understanding of **Substrate** and **FRAME development**. If you're new to these concepts, it's highly recommended to complete the introductory Substrate tutorials available in the official documentation. For example [Substrate Interactive Tutorial - Polkadot Study](https://polkadot.study/tutorials/interactive-substrate-tutorials-rusty-crewmates/).
 
-This tutorial tries to directly address this by having you build a completely vanilla Rust project which does all the same tricks as the Polkadot SDK, so you know first hand what is going on behind the scenes.
+## Useful Resources
 
-This tutorial does not assume the reader has much previous knowledge about Rust, Blockchain, or the Polkadot SDK, however, this tutorial does not replace a basic introduction of any of those topics.
+Here are some essential resources that will assist you throughout this tutorial:  
 
-It is strongly recommended that before you begin this tutorial, that you at least have read the first 11 chapters of the [Rust Book](https://doc.rust-lang.org/book/).
+- [Set Up Substrate Development Environment](https://docs.substrate.io/install/) – Choose your environment and complete the installation of required packages and Rust.  
+- [Polkadot SDK Documentation](https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/polkadot_sdk/index.html) – In-depth reference for the Polkadot SDK.  
+- [Simulating a Substrate Network](https://docs.substrate.io/tutorials/build-a-blockchain/simulate-network/) – Learn how to simulate a network in Substrate.  
+- [Unspent Transaction Output (UTXO)](https://github.com/danielbui12/substrate-bitcoin-like-blockchain/blob/main/docs/utxo/utxo.md) – Understanding UTXO account model.
+- [Proof of Work code breakdown](https://github.com/danielbui12/substrate-bitcoin-like-blockchain/blob/main/docs/pow/code-breakdown.md) – Learn how the Proof of Work code is implemented.
 
-You need not be an expert in all that you read, but it will help to have exposure to all the various topics like: ownership, basic data types, structures, enums, crates, error handling, traits, generic types, and tests.
+By following these resources, you’ll gain a solid foundation in Substrate development, enabling you to make the most of this tutorial. 🚀  
 
-The tutorial is broken into sections which cover specific learning goals for the reader, and can act as good pause points if you need them.
 
-All of the content of this tutorial is open source, free to access, and can be found [here](https://github.com/shawntabrizi/rust-state-machine).
+Overview of Bitcoin-like Blockchain in Substrate we will be building:
 
-If you have suggestions which can improve the tutorial, comments, issues and pull requests are welcome.
+```mermaid
+graph TD;
+    subgraph UTXO_Runtime
+        Timestamp -->|Time trait| Difficulty
+        Block_Author -->|BlockAuthor| UTXO
+        Bitcoin_Halving --> |Issuance| UTXO
+        FRAME_System
 
-Without further ado, enjoy and I hope you learn a ton!
+        subgraph Difficulty
+            Sha3_Difficulty
+            Keccak_Difficulty
+            Md5_Difficulty
+        end
+    end
+
+    subgraph UTXO_Node
+        subgraph Multi_PoW_Consensus
+            Sha3_Algorithm
+            Keccak_Algorithm
+            Md5_Algorithm
+        end
+
+        Tx_Pool
+    end
+
+    Difficulty --> Difficulty_API{{Difficulty API}}
+    Difficulty_API --> Multi_PoW_Consensus
+    UTXO --> Tx_Pool_API{{Tx Pool API}}
+    Tx_Pool_API --> Tx_Pool
+```

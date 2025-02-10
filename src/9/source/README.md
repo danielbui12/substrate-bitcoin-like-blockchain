@@ -1,5 +1,4 @@
-# The System and Runtime
+# Client script
 
-In this section, you will create the System Pallet, a low level Pallet for managing basic blockchain state.
+In this section, we will write a client script to generate `sigscript` for UTXO transaction using Javascript and `@polkadot/api`.
 
-Then you will integrate both the Balances Pallet and System Pallet into your state transition function, called the Runtime.

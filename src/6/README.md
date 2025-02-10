@@ -17,12 +17,12 @@
 <div id="Template" class="maintab tabcontent active">
 
 <div class="tab">
-<button class="subtab tablinks file-template file-modified active" onclick="switchSubTab(event, 'src/balances.rs')" data-id="src/balances.rs">src/balances.rs</button>
+<button class="subtab tablinks file-template file-modified active" onclick="switchSubTab(event, 'runtime/src/utxo.rs')" data-id="runtime/src/utxo.rs">runtime/src/utxo.rs</button>
 </div>
-<div id="template/src/balances.rs" class="subtab tabcontent active" data-id="src/balances.rs">
+<div id="template/runtime/src/utxo.rs" class="subtab tabcontent active" data-id="runtime/src/utxo.rs">
 
 ```rust
-{{#include ./template/src/balances.rs}}
+{{#include ./template/runtime/src/utxo.rs}}
 ```
 
 </div>
@@ -34,12 +34,12 @@
 <div id="Solution" class="maintab tabcontent">
 
 <div class="tab">
-<button class="subtab tablinks file-solution file-modified active" onclick="switchSubTab(event, 'src/balances.rs')" data-id="src/balances.rs">src/balances.rs</button>
+<button class="subtab tablinks file-solution file-modified active" onclick="switchSubTab(event, 'runtime/src/utxo.rs')" data-id="runtime/src/utxo.rs">runtime/src/utxo.rs</button>
 </div>
-<div id="solution/src/balances.rs" class="subtab tabcontent active" data-id="src/balances.rs">
+<div id="solution/runtime/src/utxo.rs" class="subtab tabcontent active" data-id="runtime/src/utxo.rs">
 
 ```rust
-{{#include ./solution/src/balances.rs}}
+{{#include ./solution/runtime/src/utxo.rs}}
 ```
 
 </div>

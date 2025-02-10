@@ -17,12 +17,21 @@
 <div id="Template" class="maintab tabcontent active">
 
 <div class="tab">
-<button class="subtab tablinks file-template file-modified active" onclick="switchSubTab(event, 'src/balances.rs')" data-id="src/balances.rs">src/balances.rs</button>
+<button class="subtab tablinks file-template file-modified active" onclick="switchSubTab(event, 'node/src/chain_spec.rs')" data-id="node/src/chain_spec.rs">node/src/chain_spec.rs</button>
+<button class="subtab tablinks file-template file-modified" onclick="switchSubTab(event, 'runtime/src/utxo.rs')" data-id="runtime/src/utxo.rs">runtime/src/utxo.rs</button>
 </div>
-<div id="template/src/balances.rs" class="subtab tabcontent active" data-id="src/balances.rs">
+<div id="template/node/src/chain_spec.rs" class="subtab tabcontent active" data-id="node/src/chain_spec.rs">
 
 ```rust
-{{#include ./template/src/balances.rs}}
+{{#include ./template/node/src/chain_spec.rs}}
+```
+
+</div>
+
+<div id="template/runtime/src/utxo.rs" class="subtab tabcontent" data-id="runtime/src/utxo.rs">
+
+```rust
+{{#include ./template/runtime/src/utxo.rs}}
 ```
 
 </div>
@@ -34,12 +43,21 @@
 <div id="Solution" class="maintab tabcontent">
 
 <div class="tab">
-<button class="subtab tablinks file-solution file-modified active" onclick="switchSubTab(event, 'src/balances.rs')" data-id="src/balances.rs">src/balances.rs</button>
+<button class="subtab tablinks file-solution file-modified active" onclick="switchSubTab(event, 'node/src/chain_spec.rs')" data-id="node/src/chain_spec.rs">node/src/chain_spec.rs</button>
+<button class="subtab tablinks file-solution file-modified" onclick="switchSubTab(event, 'runtime/src/utxo.rs')" data-id="runtime/src/utxo.rs">runtime/src/utxo.rs</button>
 </div>
-<div id="solution/src/balances.rs" class="subtab tabcontent active" data-id="src/balances.rs">
+<div id="solution/node/src/chain_spec.rs" class="subtab tabcontent active" data-id="node/src/chain_spec.rs">
 
 ```rust
-{{#include ./solution/src/balances.rs}}
+{{#include ./solution/node/src/chain_spec.rs}}
+```
+
+</div>
+
+<div id="solution/runtime/src/utxo.rs" class="subtab tabcontent" data-id="runtime/src/utxo.rs">
+
+```rust
+{{#include ./solution/runtime/src/utxo.rs}}
 ```
 
 </div>
