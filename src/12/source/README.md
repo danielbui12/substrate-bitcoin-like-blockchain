@@ -146,8 +146,8 @@ Bob:
 
 Then you can see Ferdie and Eve are continuously producing blocks.
 
-![multinode-1](assets/multinode-1.png)
-![multinode-2](assets/multinode-2.png)
+![multinode-1](https://raw.githubusercontent.com/danielbui12/substrate-bitcoin-like-blockchain/refs/heads/main/docs/assets/multinode-1.png)
+![multinode-2](https://raw.githubusercontent.com/danielbui12/substrate-bitcoin-like-blockchain/refs/heads/main/docs/assets/multinode-2.png)
 
 ### Purge chain
 
