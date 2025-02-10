@@ -58,7 +58,7 @@ pub struct TransactionOutput {
 }
 
 
-/// TODO [6-genesis-builder]
+/// [6-genesis-builder]
 /// Because code is built on `no-std` feature.
 /// And we got error:
 /// ```
@@ -70,7 +70,7 @@ pub struct TransactionOutput {
 ///
 /// Hence, we need to simplify data type to make it work in both `std` and `no-std` feature.
 /// Genesis Utxo Type
-// pub type GenesisUtxoType = (Value, H256);
+pub type GenesisUtxoType = (Value, H256);
 
 #[frame_support::pallet(dev_mode)]
 pub mod pallet {
@@ -120,44 +120,44 @@ pub mod pallet {
         QueryKind = OptionQuery,
     >;
 
-    /// TODO [6-genesis-builder]
+    /// [6-genesis-builder]
     /// Keep track of latest UTXO hash of account
     /// Mapping from `sr25519::Pubkey` to `BlakeTwo256::hash_of(transaction, index)`
     /// Just for testing 🫤
     /// Because 1 account may have multiple UTXOs
-    // #[pallet::storage]
-    // #[pallet::getter(fn utxo_of)]
-    // pub type UtxoOf<T: Config> =
-    //     StorageMap<Hasher = Identity, Key = Public, Value = H256, QueryKind = OptionQuery>;
+    #[pallet::storage]
+    #[pallet::getter(fn utxo_of)]
+    pub type UtxoOf<T: Config> =
+        StorageMap<Hasher = Identity, Key = Public, Value = H256, QueryKind = OptionQuery>;
 
-    /// TODO [6-genesis-builder]
-    // #[pallet::genesis_config]
-    // pub struct GenesisConfig<T: Config> {
-    //     pub _ph_data: Option<PhantomData<T>>,
-    //     pub genesis_utxos: Vec<GenesisUtxoType>,
-    // }
+    /// [6-genesis-builder]
+    #[pallet::genesis_config]
+    pub struct GenesisConfig<T: Config> {
+        pub _ph_data: Option<PhantomData<T>>,
+        pub genesis_utxos: Vec<GenesisUtxoType>,
+    }
 
-    /// TODO [6-genesis-builder]
-    // impl<T: Config> Default for GenesisConfig<T> {
-    //     fn default() -> Self {
-    //         Self {
-    //             _ph_data: Default::default(),
-    //             genesis_utxos: Vec::<GenesisUtxoType>::new(),
-    //         }
-    //     }
-    // }
+    /// [6-genesis-builder]
+    impl<T: Config> Default for GenesisConfig<T> {
+        fn default() -> Self {
+            Self {
+                _ph_data: Default::default(),
+                genesis_utxos: Vec::<GenesisUtxoType>::new(),
+            }
+        }
+    }
 
-    /// TODO [6-genesis-builder]
-    // #[pallet::genesis_build]
-    // impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
-    //     fn build(&self) {
-    //         for utxo in self.genesis_utxos.iter() {
-    //             let utxo = TransactionOutput { value: utxo.0, pubkey: utxo.1 };
-    //             let hash = BlakeTwo256::hash_of(&utxo);
-    //             Pallet::<T>::store_utxo(&utxo, hash);
-    //         }
-    //     }
-    // }
+    /// [6-genesis-builder]
+    #[pallet::genesis_build]
+    impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
+        fn build(&self) {
+            for utxo in self.genesis_utxos.iter() {
+                let utxo = TransactionOutput { value: utxo.0, pubkey: utxo.1 };
+                let hash = BlakeTwo256::hash_of(&utxo);
+                Pallet::<T>::store_utxo(&utxo, hash);
+            }
+        }
+    }
 
     /// [2-data-structure]
     /// Pallets use events to inform users when important changes are made.
@@ -303,10 +303,10 @@ pub mod pallet {
             // [3-spend-utxo]
             UtxoStore::<T>::insert(hash, utxo);
             
-            // TODO [6-genesis-builder]
+            // [6-genesis-builder]
             // Convert H256 back to sr25519::Public
-            // let pubkey = Public::from_h256(utxo.pubkey);
-            // UtxoOf::<T>::insert(pubkey, hash);
+            let pubkey = Public::from_h256(utxo.pubkey);
+            UtxoOf::<T>::insert(pubkey, hash);
         }
 
         /// Strips a transaction of its Signature fields by replacing value with ZERO-initialized fixed hash.

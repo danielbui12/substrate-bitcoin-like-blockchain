@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use academy_pow_runtime::{
 	AccountId, SS58Prefix, Signature, TOKEN_DECIMALS, TOKEN_SYMBOL, WASM_BINARY,
-    // TODO [6-genesis-builder]
+    // [6-genesis-builder]
     utxo::{GenesisUtxoType, Value},
 };
 use multi_pow::{ForkHeights, ForkingConfig, MaxiPosition};
@@ -111,13 +111,13 @@ pub fn development_config() -> Result<ChainSpec, String> {
 		],
 		// Initial Difficulty
 		4_000_000,
-        // TODO [6-genesis-builder]
-        // vec![
-        //     get_account_id_from_seed::<sr25519::Public>("Alice"),
-        //     get_account_id_from_seed::<sr25519::Public>("Bob"),
-        //     get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
-        //     get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
-        // ],
+        // [6-genesis-builder]
+        vec![
+            get_account_id_from_seed::<sr25519::Public>("Alice"),
+            get_account_id_from_seed::<sr25519::Public>("Bob"),
+            get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
+            get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
+        ],
 	))
 	.with_properties(system_properties())
 	.build())
@@ -145,13 +145,13 @@ pub fn testnet_config() -> Result<ChainSpec, String> {
 			get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
 		],
 		4_000_000,
-        // TODO [6-genesis-builder]
-        // vec![
-        //     get_account_id_from_seed::<sr25519::Public>("Alice"),
-        //     get_account_id_from_seed::<sr25519::Public>("Bob"),
-        //     get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
-        //     get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
-        // ],
+        // [6-genesis-builder]
+        vec![
+            get_account_id_from_seed::<sr25519::Public>("Alice"),
+            get_account_id_from_seed::<sr25519::Public>("Bob"),
+            get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
+            get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
+        ],
 	))
 	.with_properties(system_properties())
 	.build())
@@ -160,8 +160,8 @@ pub fn testnet_config() -> Result<ChainSpec, String> {
 fn genesis(
     endowed_accounts: Vec<AccountId>,
     initial_difficulty: u32,
-    // TODO [6-genesis-builder]
-    // utxo_genesis_accounts: Vec<AccountId>,
+    // [6-genesis-builder]
+    utxo_genesis_accounts: Vec<AccountId>,
 ) -> serde_json::Value {
 	serde_json::json!({
 		"balances": {
@@ -177,18 +177,18 @@ fn genesis(
 		"sha3DifficultyAdjustment": {
 			"initialDifficulty": u32_to_u8_32(initial_difficulty),
 		},
-        // TODO [6-genesis-builder]
-        // "utxo": {
-        //     "genesisUtxos": utxo_genesis_accounts
-        //         .iter().cloned()
-        //         .map(|k| {
-        //             let hash = H256::from_slice(&k.as_slice()); 
-        //             let value: Value = (1u64 << 50).into();
-        //             let genesis_utxo: GenesisUtxoType = (value, hash);
+        // [6-genesis-builder]
+        "utxo": {
+            "genesisUtxos": utxo_genesis_accounts
+                .iter().cloned()
+                .map(|k| {
+                    let hash = H256::from_slice(&k.as_slice()); 
+                    let value: Value = (1u64 << 50).into();
+                    let genesis_utxo: GenesisUtxoType = (value, hash);
 
-        //             genesis_utxo
-        //         }).collect::<Vec<GenesisUtxoType>>(),
-        // },
+                    genesis_utxo
+                }).collect::<Vec<GenesisUtxoType>>(),
+        },
 	})
 }
 
