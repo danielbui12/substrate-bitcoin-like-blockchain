@@ -1,12 +1,12 @@
 [book]
-authors = ["Shawn Tabrizi"]
+authors = ["@danielbui12"]
 language = "en"
 multilingual = false
 src = "src"
-title = "Rust State Machine"
+title = "Substrate Bitcoin-like Blockchain"
 
 [output.html]
 additional-css = ["custom/styles.css"]
 additional-js = ["custom/tabs.js"]
-git-repository-url = "https://github.com/shawntabrizi/rust-state-machine"
+git-repository-url = "https://github.com/danielbui12/substrate-bitcoin-like-blockchain"
 git-repository-icon = "fa-github"
