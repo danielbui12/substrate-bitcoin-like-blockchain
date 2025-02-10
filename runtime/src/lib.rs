@@ -326,12 +326,12 @@ impl pallet_transaction_payment::Config for Runtime {
 }
 
 
-// TODO [5-runtime]
-// impl utxo::Config for Runtime {
-//     type RuntimeEvent = RuntimeEvent;
-//     type BlockAuthor = BlockAuthor;
-//     type Issuance = issuance::BitcoinHalving;
-// }
+// [5-runtime]
+impl utxo::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type BlockAuthor = BlockAuthor;
+    type Issuance = issuance::BitcoinHalving;
+}
 
 
 construct_runtime!(
@@ -344,8 +344,8 @@ construct_runtime!(
 		Sha3DifficultyAdjustment: difficulty::<Instance2>,
 		KeccakDifficultyAdjustment: difficulty::<Instance3>,
 		BlockAuthor: block_author,
-        // TODO [5-runtime]
-        // Utxo: utxo,
+        // [5-runtime]
+        Utxo: utxo,
 	}
 );
 
@@ -436,21 +436,21 @@ impl_runtime_apis! {
 			tx: <Block as BlockT>::Extrinsic,
 			block_hash: <Block as BlockT>::Hash,
 		) -> TransactionValidity {
-            // TODO [5-runtime]
+            // [5-runtime]
 
-            // // Extrinsics representing UTXO transaction need some special handling
-            // if let Some(&utxo::Call::spend{ ref transaction }) = IsSubType::<<Utxo as Callable<Runtime>>::RuntimeCall>::is_sub_type(&tx.function)
-            // {
-            //     match Utxo::validate_transaction(&transaction) {
-            //         // Transaction verification failed
-            //         Err(e) => {
-            //             sp_runtime::print(e);
-            //             return Err(TransactionValidityError::Invalid(InvalidTransaction::Custom(1)));
-            //         }
-            //         // Race condition, or Transaction is good to go
-            //         Ok(tv) => { return Ok(tv); }
-            //     }
-            // }
+            // Extrinsics representing UTXO transaction need some special handling
+            if let Some(&utxo::Call::spend{ ref transaction }) = IsSubType::<<Utxo as Callable<Runtime>>::RuntimeCall>::is_sub_type(&tx.function)
+            {
+                match Utxo::validate_transaction(&transaction) {
+                    // Transaction verification failed
+                    Err(e) => {
+                        sp_runtime::print(e);
+                        return Err(TransactionValidityError::Invalid(InvalidTransaction::Custom(1)));
+                    }
+                    // Race condition, or Transaction is good to go
+                    Ok(tv) => { return Ok(tv); }
+                }
+            }
 
             // Fall back to default logic for non UTXO-spending extrinsics
 			Executive::validate_transaction(source, tx, block_hash)
